@@ -1,0 +1,26 @@
+\babel@toc {spanish}{}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Diagramas de caja de las diferencias relativas entre la matriz de distancias original y la matriz imputada $M$.}}{10}{figure.2.1}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Diagramas de caja de las diferencias relativas entre las distancias reales e imputadas.}}{10}{figure.2.2}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Diagramas de caja de los tiempos de ejecuci\IeC {\'o}n para cada enfoque en escala logar\IeC {\'\i }tmica.}}{11}{figure.2.3}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Comparaci\IeC {\'o}n de diferentes m\IeC {\'e}todos de agrupamiento jer\IeC {\'a}rquico.}}{14}{figure.2.4}
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Comparaci\IeC {\'o}n del PAM vs $fastkmed$ para $K=3$.}}{17}{figure.2.5}
+\contentsline {figure}{\numberline {2.6}{\ignorespaces B\IeC {\'u}squeda de un valor ``\IeC {\'o}ptimo'' de cl\IeC {\'u}steres.}}{20}{figure.2.6}
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Simulaci\IeC {\'o}n comparando puntos al azar vs. puntos v\IeC {\'\i }a cl\IeC {\'u}ster.}}{21}{figure.2.7}
+\contentsline {figure}{\numberline {2.8}{\ignorespaces Comparaci\IeC {\'o}n del procedimiento aditivo y ultram\IeC {\'e}trico para $n=1000$, $l=90\%$, $p=20$ y $N = 300$.}}{22}{figure.2.8}
+\contentsline {figure}{\numberline {2.9}{\ignorespaces Comparaci\IeC {\'o}n ultram\IeC {\'e}trica vs. imputaci\IeC {\'o}n v\IeC {\'\i }a cl\IeC {\'u}ster para $n=1000$, $l=90\%$, $p=20$ y $N = 300$.}}{23}{figure.2.9}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Im\IeC {\'a}genes seleccionadas del conjunto de datos de entrenamiento del MNIST.}}{24}{figure.3.1}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Frecuencia de las etiquetas de datos de entrenamiento y validaci\IeC {\'o}n del MNIST.}}{25}{figure.3.2}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Frecuencia de las etiquetas de datos de prueba del MNIST.}}{25}{figure.3.3}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Ejemplo de data augmentation para una muestra seleccionada del MNIST.}}{26}{figure.3.4}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Selecci\IeC {\'o}n del par\IeC {\'a}metro $k$ del k-NN en datos de entrenamiento y validaci\IeC {\'o}n del MNIST.}}{26}{figure.3.5}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Diagrama de barras de cut.}}{28}{figure.3.6}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Diagrama de barras de color.}}{29}{figure.3.7}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Diagrama de barras de clarity.}}{29}{figure.3.8}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Selecci\IeC {\'o}n del par\IeC {\'a}metro $k$ del k-NN en datos de entrenamiento y validaci\IeC {\'o}n de DIAMONDS.}}{30}{figure.3.9}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Comparaci\IeC {\'o}n de una muestra entre k-NN, imputaci\IeC {\'o}n mediante cl\IeC {\'u}steres y valores reales de DIAMONDS}}{30}{figure.3.10}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsfinish 

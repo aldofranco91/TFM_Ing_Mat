@@ -1,0 +1,1228 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts} 
+\usepackage{amssymb}
+\usepackage{adjustbox}
+\usepackage{rotating}
+\usepackage{listings}   
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{
+    hidelinks=true
+}
+\usepackage{amsthm}
+\usepackage{float}
+\usepackage{color}
+\definecolor{azulUC3M}{RGB}{0,0,102}
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\usepackage{listings}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\lstset{ frame=Ltb,
+     framerule=0pt,
+     aboveskip=0.5cm,
+     framextopmargin=3pt,
+     framexbottommargin=3pt,
+     framexleftmargin=0.4cm,
+     framesep=0pt,
+     rulesep=.4pt,
+     backgroundcolor=\color{gray97},
+     rulesepcolor=\color{black},
+     %
+     stringstyle=\ttfamily,
+     showstringspaces = false,
+     basicstyle=\small\ttfamily,
+     commentstyle=\color{gray45},
+     keywordstyle=\bfseries,
+     %
+     numbers=left,
+     numbersep=15pt,
+     numberstyle=\tiny,
+     numberfirstline = false,
+     breaklines=true,
+   }
+ 
+% minimizar fragmentado de listados
+\lstnewenvironment{listing}[1][]
+   {\lstset{#1}\pagebreak[0]}{\pagebreak[0]}
+ 
+\lstdefinestyle{consola}
+   {basicstyle=\scriptsize\bf\ttfamily,
+    backgroundcolor=\color{gray75},
+   }
+ 
+\lstdefinestyle{C}
+   {language=C,
+   }
+\usepackage[top=2cm]{geometry}
+\pretolerance=2000
+\tolerance=3000
+\begin{document}
+
+\begin{titlepage}
+\begin{sffamily}
+\color{azulUC3M}
+\begin{center}
+%\vspace*{-1cm}
+\begin{figure}[htb]
+\begin{center}
+\vspace*{0.6cm}
+\includegraphics[width=15cm]{imagenes/Portada_Logo.png}
+\vspace*{1.6cm}
+\end{center}
+\end{figure}
+\begin{LARGE}
+Master in Big Data Analytics \\%completar el nombre del grado
+2017/2018 \\%indicar el curso académico
+\vspace*{1cm}
+\textsl{Master's Thesis}\\
+\end{LARGE}
+\Huge{\textbf{Forecasting Spanish electricity prices}} %Más significativo que el anterior
+\vspace*{1cm}\\
+\huge{Aldo Ramón Franco Comas}\\ %Separar cada autor con \\ 
+\vspace*{1cm}
+\begin{Large}
+Advisors:\\
+Francisco Javier Nogales Mart\'in\\
+Carlos Ruiz Mora\\
+\vspace*{1cm}
+February, 2017. Madrid\\
+\end{Large}
+\end{center}
+\vspace*{2cm}
+\color{black}
+\end{sffamily}
+\end{titlepage}
+
+\pagestyle{fancy}
+\fancyhead{} % Clear all header fields
+\setlength\headheight{21.2pt}
+\lhead{\hspace*{-0.3cm}\raisebox{-0.3\height}{\includegraphics[scale=1]{imagenes/Interior_Logo.png}}}
+\rhead{\color{azulUC3M}} %Poner encabezado
+
+\renewcommand{\tablename}{\textbf{Table}} %para poner la palabra en mayusucula
+\renewcommand{\figurename}{\textbf{Figure}} % para poner la palabra en mayuscula
+\renewcommand{\contentsname}{Contents}
+\renewcommand{\listfigurename}{Index of figures}
+
+\newpage
+
+\textbf{Abstract:}\\ 
+Forecast the electricity prices  in short, medium and long term is very important for power portfolio managers, producers, utility companies or large industrial consumer. In the last years has been proposed a lot of models to try to forecast the electricity prices in different markets with the possible better accuracy. This research compares and combines different techniques in order to forecast the electricity price at four horizons (day, week, month and year). We consider support vector machine, seasonal ARIMA models, TBATS and dynamic factor models. We also developed a website that allows to visualize and download these predictions and their corresponding prediction intervals.\\
+
+\textbf{Key Words:}\\
+Electricity price forecast; TBATS; Linear models; Support vector machine; Dynamic factor models. \\
+
+\newpage
+\tableofcontents
+
+\newpage
+\listoffigures
+ 
+\newpage 
+\listoftables
+
+\newpage
+\section{Introduction}
+Since the early 1990, the government-controlled and traditional monopolistic power sector have been changing due to the introduction of competitive markets and a process of deregulation. In many countries, the electricity price is traded under the rules of a spot market, where assets are sold for cash and delivered immediately. Spot markets provide both consumers and producers with greater flexibility in their trading decisions, since traders can adjust their trading programs until the day before the trade, on the day-ahead market. \cite{spot}\\
+
+Electricity prices in Europe are set on a daily basis (every day of the year) at midday, for the twenty-four hours of the following day, in what we refer to as the Daily Market. The price and volume of energy over a specific hour are determined by the point at which the supply and demand curves meet, according to the marginal pricing model adopted by the European Union (EU) \cite{market}. In essence the process of price formation follows the basic rule of microeconomics theory (Law of Supply and Demand) where the price of the underlying commodity in a competitive market should reflect the relative scarcity of the supply for a given demand level. In the case where the demand for a commodity is low, those suppliers with higher incremental costs must step out of competition (or make negative profits) and give way to suppliers with the lowest incremental costs. \\
+
+OMI-Polo Espa\~nol, S.A. (OMIE) manages the spot market on the Iberian Peninsula, in the same way that Nord Pool Spot does so in the Nordic countries, EPEXSPOT (the European Power Exchange) in Germany, France, the United Kingdom, the Netherlands, Belgium, Austria, Switzerland and Luxembourg, and GME in Italy. This market is operated in a transparent and non-discriminatory manner. In January, 1998 OMIE began their operations for the Spanish market, and in July, 2007 extended them to cover the Iberian Market.\\
+
+OMIE manages transactions amounting over ten billion euros, accounting for more than 80$\%$ of the electricity supplied in Spain and Portugal. Iberian market operates 365 days at year, 24 hours at day, and is open to all those buying and selling agents that wish to trade on it. There are over 800 agents operating nowadays and are involved in a total of over 13 million transactions per year.\\
+
+Buying and selling agents may trade on this market regardless of whether they are in Spain or in Portugal. Their purchase and sale bids are accepted according to their economic merit order, until the interconnection between Spain and Portugal is fully occupied. If at a certain time of the day the capacity of the interconnection is such that it permits the flow of the electricity traded by the agents, the price of electricity for that hour will be the same for Spain and Portugal. If, on the other hand, the interconnection is fully occupied at that time, the price-setting algorithm (EUPHEMIA)\cite{euphemia} is run separately so that there is a price difference between the two countries. In 2014, the price of electricity was the same in Spain and Portugal for 90$\%$ of the time, which confirms that the integration of the Iberian market is working properly.\\
+
+The mechanism described for setting the price of electricity on the daily market in Spain and Portugal is referred to as market splitting, being the same mechanism as the one used across Europe. The results of the daily market, as determined by the free trade between buying and selling agents, are the most efficient solution from an economic perspective. Nonetheless, given the nature of electricity, this process also needs to be feasible in physical terms. Accordingly, once these results have been obtained, they are sent to Red El\'ectrica de España, S.A. (System Operator), for their validation from the standpoint of technical viability. This process is known as management of the system technical limitations and ensures that the market results can be technically accommodated. This means that the daily market results may be altered slightly, affecting around 4-5$\%$ of the energy, in response to an analysis of the technical limitations conducted by the System Operator, giving rise to a viable daily program.\\
+
+The Iberian Market is one of Europe more liquid ones, and their prices are comparable to those in the other markets. In fact, in most years, this market has recorded prices that are below the average for Europe's major markets. In addition, while Iberian prices fluctuate between 0 and 180 Euros by MWh, their European counterparts oscillate within a wider price bracket, from $-500$ to $+3000$ Euros by MWh.\\
+
+However the electricity has its peculiarities, it is not storable and power system stability needs a constant balance between consumption and production. The electricity price depends a lot of factors like the weather (temperature, precipitation, wind speed, etc.), the price of products as carbon and crude oil, and the intensity of business and everyday activities. These specific and unique characteristics cause that is very difficult to forecast the electricity prices in differents markets.\cite{variables}\\
+
+Forecast electricity prices from a few hours to a few months ahead is of the interest to the power portfolio managers. An utility company, producers or a large industrial consumer who can forecast the prices with a reasonable level of accuracy can adjust its own consumption or production schedule and its bidding strategy in order to maximize the profits or reduce the risk.\cite{review}\\
+
+A lot of methods and ideas have been developed in the last years for electricity price forecasting. Based on forecasting horizons and goals, we can categorized the Electricity Price Forecast (EPF) in three groups as follows \cite{term}\cite{weron}:
+\begin{itemize}
+\item \textit{Short-term price forecasting:} Will be mainly used by the market players to maximize profits or minimize risk in the Spot Markets. Involves forecasts from a few minutes up to a few days ahead. In EPF this is the category where we found more papers and research than the rest of the categories.\\
+
+Variants of autoregressive and general ARMA process have been used to short-term forecast in the German EEX market\cite{ARAlemania} that is part of the EPEXSPOT market. On the other hand, in the California market also know as CAISO from April to mid-June, 2000 was found that simple AR model structure when expanded to include a load forecast of the system operator, is a tough competitor among the ARX-GARCH,TARX and Markov regime-switching (MRS) models. ARX turns out to be the best in a relatively calm period in the California market (April to mid-June, 2000), and second best (after TARX) in a more volatile period (second half of 2000)\cite{TSCalifornia}. For predicting hourly prices in Spain and California have been used transfer function (TF) and dynamic regression (DR) where the price at hour $t$ is related to the values of past prices at hours $t-1,t-2,...$ and to the values of demands at hours $t,t-1,t-2,...$.\cite{Nogales1}\\
+
+For the PJM market \footnote{It is a regional transmission organization that coordinates the movement of wholesale electricity in all or parts of Delaware, Illinois, Indiana, Kentucky, Maryland, Michigan, New Jersey, North Carolina, Ohio, Pennsylvania, Tennessee, Virginia, West Virginia and the District of Columbia in the United States.} have been used three time series specifications (ARIMA, TF and DR), a wavelet multivariate regression technique, and a multilayer perceptron (MLP) with one hidden layer. For a dataset comprising PJM prices from the year 2002 concluding that the ARIMA model is worse than the time series models with exogenous variables but better than the MLP\cite{Conejo2005}. In the same market an ARMAX model with the temperature, squared temperature and cubed temperature as explanatory variables was used for day-ahead EPF. It was found that all temperature variables to be highly statistically significant during the pre-crisis period  from April 1st,1998 to April 30th,2000.\cite{Knittel}\\
+
+Elman networks, that is a three-layer network, was used to obtain short-term price forecasts in the market of mainland Spain \cite{Kumarapa}. Other papers proposed for Spanish market in 2002 combine kernel PCA (for extracting features of the inputs) with a Bayesian local informative vector machine (for making the predictions) and suggested that the resulting technique is better than other methods, including ARIMA and artificial neural networks (ANN)\cite{PCA}. Hybrid models have been developed for point and interval forecasting in Australia, Ontario, Spain and California markets. In this case have been used a FitzHugh–Nagumo (FHN) model, for mimicking the spiky price behavior, with an Elman network, for regulating the latter, and a feed-forward ANN, for modelling the residuals.\cite{Sharma}\\
+
+\item \textit{Medium-term price forecasting:} Will allow the successful negotiations of bilateral contracts between suppliers and consumer. From a few days to a few months ahead are generally preferred for balance sheet calculations,
+risk management and derivatives pricing.\\
+
+For medium-term have been considered vector ARIMA (essentially VAR) and factor models in the Iberian market with a good accuracy \cite{Andres}. Forward price models are the domain of mathematical finance and have been used in the Nordic countries; constructing smooth forward price curves in electricity markets can be difficult, however, the benefits of doing it are the readily available medium-term price forecasts for multiple horizons. These forecasts can be biased, though, and include the risk premium. \cite{Gjolberg}\\
+
+Reduced-form models usually don't forecast hourly prices accurately, but is expected to recover the main characteristics of electricity spot prices, typically at the daily time scale. Such models provide a simplified, yet reasonably realistic picture of the price dynamics, and are commonly used for derivatives pricing and risk analysis.\cite{Benth} Interestingly, when they have used to forecast volatility or price spike, the reduced-form models have been reported to perform reasonably well. However, mean-reverting jump-diffusions or Markov regime-switching have been criticized for forecasting in general.\cite{Bessec} On the other hand, at least for medium-term forecasts of average daily prices at the German EEX market some authors oppose to the conclusion that the accuracy is not good.\cite{Kosater}\\
+
+\item \textit{Long-term price forecasting:} Will influence the decisions on transmission expansion and enhancement, generation and distribution plannings. The investment profitability analysis and plannings, such as determining the future sites or fuel sources for power plants. The usual lead times are months, quarters or even years.\\
+
+Agent based Computational Economics (ACE) has become a widely accepted approach to solving both theoretical and practical problems in energy economics. The basic tool of ACE is an Agent Based Model (ABM) wich is a class of computational structures and rules for simulating the actions and interactions of autonomous agents, with the ultimate objective being to assess their effects on the system as a whole.\cite{Koritarov}\\
+
+The ABM approach is well positioned in the long-term electricity price forecasting. Perhaps with the development of more powerful processors and cloud computing, ABM will someday provide efficient tools for EPF. It has been proposed an algorithm which switches between the predictions of different models (neural networks, fuzzy regressions and a standard regression) based on some prespecified rules, and use them for long-term (annual time scale) EPF.\cite{review}\\
+
+An integrated, multistep algorithm which combines three ANNs, seven fuzzy regressions and one standard regression model have been developed and proposed to provide a joint framework for long-term (annual time scale) EPF\cite{Azadeh}. On the other hand some preliminary results have showed the usefulness of factor models for long-term predictions.\cite{martos} \cite{Andres}
+\end{itemize}
+
+Additionally, electricity price forecasting methods can be classified in six categories\cite{weron}:
+
+\begin{itemize}
+\item \textit{Multi-agent models:} Which simulate the operation of a system of heterogeneous agents (generating units, companies) interacting with each other, and build the price process by matching the demand and supply in
+the market.
+\item \textit{Fundamental models:} Which describe the price dynamics by modeling the impacts of important physical and economic factors on the price of electricity.
+\item \textit{Reduced-form models:} Which characterize the statistical properties
+of electricity prices over time, with the ultimate objective of derivatives evaluation and risk management.
+\item \textit{Statistical models:} Which are direct applications of the statistical and econometric forecasting techniques. 
+\item \textit{Computational intelligence models:} Which combine elements of learning, evolution and fuzziness to create approaches that are capable of adapting to complex dynamic systems, and may be regarded as `intelligent' in this sense.
+\item \textit{Hybrid models:} Many of the modeling and price forecasting approaches considered in the literature are hybrid solutions, combining techniques from two or more of the groups listed above.
+\end{itemize}
+
+The main contribution of this thesis is to compare the performance of several models in the forecast of the electricity price at the Iberian market considering different forecast horizons. Four horizons will be considered 24 hours, 144 hours, 30 days and 12 months. Also, a web page using Shiny will be created and loaded in Amazon Web Services (AWS) where the forecasts can be obtained and downloaded.\\
+
+The rest of this document is organized as follows. Section 2 explains how we can obtain our data using the ESIOSs API and the main R's packages that were used in this research. Section 3 presents the different algorithms and techniques that were used in our EPF exercise as well as the performance measures. In Section 4 we explain why we choose these models and not another one that were considered too. In Section 5 we explain how the web page was created and how we automatically compute the forecast values. Finally, Section 6 concludes with remarks, limitations and possible extensions. 
+
+\newpage
+\section{Data Availability}
+
+\subsection{Software tools}
+For the development of this thesis, it has been used the software R that is a free software environment for statistical computing and graphics. It compiles and runs on a wide variety of UNIX platforms, Windows and MacOS. We have used the following R's packages that have been developed by the big community of R's users.
+
+\begin{itemize}
+\item \textit{jsnolite:} A fast JSON parser and generator optimized for statistical data and the web. This package offers flexible, robust, high performance tools for working with JSON in R and it is particularly powerful for building pipelines and interacting with a web API. In addition this package can convert JSON data from/to R objects.
+\item \textit{httr:} Useful tools for working with HTTP organized by HTTP verbs (GET(), POST(), etc). Configuration functions make it easy to control additional request components (authenticate(), add\_headers() and so on).
+\item \textit{lubridate:} It is an R package that makes it easier to work with dates and times. 
+\item \textit{MLmetrics:} A collection of evaluation metrics (MAE, MAPE, etc), including loss, score and utility functions, that measure regression, classification and ranking performance.
+\item \textit{forecast:} Methods and tools for displaying and analyzing univariate time series forecasts including exponential smoothing via state space models and automatic ARIMA modeling.
+\item \textit{caret:} The caret package (short for Classification And REgression Training) is a set of functions that attempt to streamline the process for creating predictive models, it is frequently used for work with machine learning techniques.
+\item \textit{shiny:} Makes it incredibly easy to build interactive web applications with R. It is used for R users who have zero experience with web development.
+\item \textit{e1071:} Functions for latent class analysis, short time Fourier transform, fuzzy clustering, support vector machines, shortest path computation, bagged clustering, naive Bayes classifier, among other statistical techniques. 
+\item \textit{dygraphs:} An R interface to the `dygraphs' JavaScript charting library (a copy of which is included in the package). Provides rich facilities for charting time-series data in R, including highly configurable series- and axis-display and interactive features like zoom/pan and series/point highlighting.
+\item \textit{markdown:} Convert R Markdown documents into a variety of formats.
+\item \textit{cronR:} Create, edit, and remove `cron' jobs on your unix-alike system. The package provides a set of easy-to-use wrappers to `crontab'. It also provides an RStudio add-in to easily launch and schedule your scripts. 
+\end{itemize}
+
+\subsection{ESIOS}
+
+Red Eléctrica de España, S.A. (REE) has as its mission to ensure the global operation of the Spanish electricity system through two essential activities: the operation of the electrical system and the transmission of electricity in high voltage. As an operator of the electrical system, REE guarantees the continuity and security of the electricity supply and the permanent balance between the production and consumption of electricity.\\
+
+REE has developed an information system known as ``System Operator Information System (E-SIOS)", specially designed to run all the necessary processes to ensure an economic and reliable exploitation of the Spanish Power System in real time. This system is able to store, in its historical database all the information received or published as result of the different processes.\\
+
+The System Operator (SO) must provide, to the market participants, the markets results following the confidentiality criteria and periods established in the current regulation. Also some information should be published for the general public, to ensure the transparency of the SO operations.\\
+
+To address the above requirements the SO has developed two Websites:
+
+\begin{itemize}
+\item \textit{\url{https://sujetos.esios.ree.es}:} Secure website that requires the use of electronic certificate, intended to interchange confidential information between the SO and the market participants.
+\item \textit{\url{https://www.esios.ree.es}:} E-SIOS Public Website where the non confidential information, result of the SO market operations, or other information of public interest related to the electricity markets, is published by REE.
+\end{itemize}
+
+From the second website, we download the data for this thesis using the ESIOS-API (see section \ref{subsec:API}).
+
+\subsection{API}\label{subsec:API}
+In computer programming, an application programming interface (API) is a set of subroutine definitions, protocols, and tools for building an application software. In general terms, it is a set of clearly defined methods of communication between various software components. Web APIs are defined interfaces through which interactions happen between an enterprise and applications that use its assets. An API approach is an architectural approach that provides programmable interfaces to a set of services for different applications serving different types of consumers. When used in the context of web development, an API is typically defined as a set of Hypertext Transfer Protocol (HTTP) request messages, along with a definition of the structure of response messages, which is usually in an Extensible Markup Language (XML) or JavaScript Object Notation (JSON) format.\\
+
+The new E-SIOS public website makes available an API for data download, which is detailed at \textit{\url{https://api.esios.ree.es}}. To use this API you must request a personal token sending an email to \textit{consultasios@ree.es} with the following subject \textit{Personal token request}, due to public current token changes often. The information downloaded from the API is clean, free of outliers and missing values.\\
+
+Here is an example, in R, that shows how it can be downloaded the Daily Peninsular Demand Forecast from April 1st, 2014 at 0000 to June 30th, 2017 at 2300 in JSON format by hour and transform it into a dataframe.
+
+\lstset{frame=tb,
+language=R
+}
+
+\begin{lstlisting}
+rm(list=ls())
+library(jsonlite)
+library(httr)
+start_day = "2014-04-01"
+end_day = "2017-06-30"
+address_demanda = paste0("https://api.esios.ree.es/indicators/460?start_date=",start_day,
+                         "T00:00:00&end_date=",end_day,"T23:00:00&time_agg=avg&time_trunc=hour",
+                         collapse = NULL)
+resp_demanda=GET(url = address_demanda, add_headers('Authorization'= 'Token token="cecb6df8f7127018............................................488b"'))
+demanda = content(resp_demanda, as ="text")
+demanda = fromJSON(demanda)
+demanda = demanda$indicator$values
+\end{lstlisting}
+
+In particular we obtained data for price, demand forecast, wind power generation forecast, solar PV generation forecast and solar thermal generation forecast.  
+
+\begin{table}[H]
+\centering
+\caption{Variables downloaded from E-SIOS website.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Variable                          & Id  & By Month & By Day & By Hour \\ \hline
+Price                             & 600 & Yes      & Yes    & Yes     \\ \hline
+Demand Forecast                   & 460 & No       & No     & Yes     \\ \hline
+Wind Power Generation Forecast    & 541 & No       & No     & Yes     \\ \hline
+Solar PV Generation Forecast      & 542 & No       & No     & Yes     \\ \hline
+Solar Thermal Generation Forecast & 543 & No       & No     & Yes     \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+\section{Methodology}
+In this section we will present the different algorithms or modeling approaches used in this project. First we will introduce Support Vector Machines (SVM) with lineal kernel, next the linear time series models used in this research, the TBATS models, simple linear regression and the dynamic factor models. Finally, we present the model selection procedure and how the prediction intervals can be computed.
+
+\subsection{Support Vector Machines for Regression}
+Support vector machine (SVM) analysis is a popular machine learning tool for classification and regression, developed by Vladimir Vapnik and his colleagues in 1992 at the AT$\&$T's laboratories \cite{Vapnik}. This machine learning tool is considered a non-parametric technique because it relies on kernel functions.\\
+
+\noindent \textbf{Linear SVM Regression: Primal Formula}\\
+Given a training dataset of $N$ observations, $\left \{ (x_n,y_n):1\leq n\leq N \right \}$, where $x_n$ is a vector of explanatory variables and $y_n$ is a real valued response, the linear SVM regression consists in finding a linear function $f(x)=x'\beta+b$, such that it has at most an $\varepsilon$-deviation from the response, $y$. The linear SVM regression can be formulated as the following convex optimization problem:
+\begin{equation}\label{eq:problem1}
+  \begin{gathered}
+    \min_\beta \frac{1}{2}\beta'\beta\\
+	st:\left\{
+	\begin{matrix}
+	\forall n: y_n-(x_n'\beta+b) \le \varepsilon\\
+	\forall n: (x_n'\beta+b)-y_n \le \varepsilon\\
+	\end{matrix}\right.
+  \end{gathered}
+\end{equation}
+
+It is possible that no such function $f(x)$ exists to satisfy these constraints for all $n$, that is there is an $n$ such that $y_n-(x_n'\beta+b) > \varepsilon$ or $(x_n'\beta+b)-y_n > \varepsilon$. To deal with those unfeasible constraints, slack variables $\xi_n$ and $\xi_n^*$ for each point are introduced into the objective function of problem (\ref{eq:problem1}).\\
+
+The problem is reformulated to what is know as the primal formula \cite{Vapnik}:
+\begin{equation}
+\begin{gathered}
+\min_\beta \frac{1}{2}\beta'\beta+C\sum_{n=1}^{N}(\xi_n+\xi_n^*)\\
+st:\left\{\begin{matrix}
+\forall n: y_n-(x_n'\beta+b) \le \varepsilon+\xi_n \\
+\forall n: (x_n'\beta+b)-y_n \le \varepsilon+\xi_n^* \\
+\forall n: \xi_n^* \geq 0\\
+\forall n: \xi_n \geq 0
+\end{matrix}\right.
+\end{gathered}
+\end{equation}
+The constant $C$ is a positive numeric value that controls the penalty imposed on observations that lie outside the $\varepsilon$ margin and helps to prevent overfitting (regularization). This value determines the trade-off between the flatness of $f(x)$ and the amount up to which deviations larger than $\varepsilon$ are tolerated.\\
+
+\noindent \textbf{Linear SVM Regression: Dual Formula}\\
+The optimization problem previously described is computationally simpler to solve in its Lagrange dual formulation. The solution to the dual problem provides a lower bound to the solution of the primal (minimization) problem. The optimal values of the primal and dual problems need not be equal, and the difference is called the duality gap. But when the problem is convex and satisfies a qualification constraint, the value of the optimal solution to the primal problem is given by the solution of the dual problem.\\
+
+To obtain the dual formula, construct a Lagrangian function from the primal function by introducing nonnegative multipliers $\alpha_n$ and $\alpha_n^*$ for each observation $x_n$. This leads to the dual formula, where we minimize:
+\begin{equation}\label{eq:problem2}
+L(\alpha)=\frac{1}{2}\sum_{i=1}^{N}\sum_{j=1}^{N}(\alpha_i-\alpha_i^*)(\alpha_j-\alpha_j^*)K(x_i,x_j)+\varepsilon\sum_{i=1}^{N}(\alpha_i+\alpha_i^*)+\sum_{i=1}^{N}y_i(\alpha_i^*-\alpha_i)\\
+\end{equation}
+
+\begin{equation}\label{eq:problem2}
+st:\left\{\begin{matrix}
+\sum_{n=1}^{N}(\alpha_n-\alpha_n^*)=0\\
+\forall n: 0 \leq\alpha_n \leq C \\
+\forall n: 0 \leq\alpha_n^* \leq C
+\end{matrix}\right.,
+\end{equation}
+where $K(x_i,x_j)$ is a kernel function.\cite{mit} In the present thesis a linear kernel ($K(x_i,x_j)=x_i'x_j$), polynomial kernel and radial kernel were considered.\\
+
+The parameter $\beta$ can be completely described as a linear combination of the training observations using the expression:
+\begin{equation}
+\beta=\sum_{n=1}^{N}(\alpha_n-\alpha_n^*)(x_n).
+\end{equation}
+
+The Karush-Kuhn-Tucker (KKT) conditions of problem (\ref{eq:problem2}) are:
+\begin{equation}
+\left\{\begin{matrix}
+\forall n: \alpha_n(\varepsilon+\xi_n-y_n+f(x_n))=0\\
+\forall n: \alpha_n(\varepsilon+\xi_n^*+y_n-f(x_n))=0\\
+\forall n: \xi_n(C-\alpha_n)=0\\
+\forall n: \xi_n^*(C-\alpha_n^*)=0
+\end{matrix}\right..
+\end{equation}
+\\
+These conditions indicate that all observations strictly inside the $\varepsilon$-band have Lagrange multipliers $\alpha_n=0$ and $\alpha_n^*=0$. Observations with nonzero Lagrange multipliers are called support vectors. The function used to predict new values depends only on the support vectors since
+\begin{equation}
+f(x)=\sum_{n=1}^{N}(\alpha_n-\alpha_n^*)K(x_n,x)+b.
+\end{equation}
+
+\subsection{Time Series Linear Models}
+A time series is a set of observations, $X_t$, each one being recorded at a specific time $t$. Time series appear in signal processing, finance, economy, meteorology, astronomy, etc. Time series analysis is the set of techniques, procedures and models that are used to extract valuable characteristics of the data. Time series forecasting is one of the fundamental tasks of this analysis and it consists in predicting future values based on the previously observed values. There are many kind of models that can be adjust to time series, in this section we are going to explain some of them. We will concentrate our attention on the family of linear models.\\
+
+One of the most famous and simplest model is the AutoRegressive model, AR, that is frequently used in economics for stationary process. \footnote{A stationary process is a stochastic process whose joint probability distribution doesn't change when shifted in time. Consequently, parameters such as mean and variance do not change over time.} This kind of models specified that $X_t$ depends only on its own past values and on an independent term.
+
+\theoremstyle{definition}
+\begin{definition}
+An AutoRegressive model of order $p$, AR$(p)$, is defined as follows \cite{ARMA}:
+\begin{equation}
+X_t=\phi _1X_{t-1}+...+\phi _pX_{t-p}+Z_t ;\qquad t=0,\pm 1,\pm 2,...
+\end{equation}
+where $Z_t$ is a sequence of independent and identically distributed random variable with zero mean and constant variance, $\sigma^2$. $Z_t$ is called white noise and it is denoted by $Z_t\sim WN(0,\sigma^2)$.
+\end{definition}
+
+There are time series, $X_t$, that depends on the current and various past values of the noise. Those time series are usually called Moving Average MA model. 
+
+\begin{definition}
+A Moving Average model of order $q$, MA$(q)$, is defined as follows \cite{ARMA}:
+\begin{equation}
+X_t=Z_t+\theta_1Z_{t-1}+...+\theta_qZ_{t-q} ;\qquad t=0,\pm 1,\pm 2,...
+\end{equation}
+where $Z_t\sim WN(0,\sigma^2)$.
+\end{definition}
+
+If we combine the AutoRegressive structure with the Moving Average ones, we obtain a general model called ARMA$(p,q)$ where $p$ is the order of the autoregressive component and $q$ is the order of the moving average component. An ARMA$(0,q)$ model is equal to a MA$(q)$ model and similarly for an ARMA$(p,0)$ which is equal to an AR$(p)$ model.
+
+\begin{definition}
+An AutoRegressive Moving Average or ARMA$(p,q)$ model is given by \cite{ARMA}:
+\begin{equation}
+X_t-\phi _1X_{t-1}-...-\phi _pX_{t-p}=Z_t+\theta_1Z_{t-1}+...+\theta_qZ_{t-q},
+\end{equation}
+where $Z_t\sim WN(0,\sigma^2)$.
+\end{definition}
+
+This equation can be written in the following form:
+\begin{equation}
+\pmb{\phi}(B)X_t=\pmb{\theta}(B)Z_t;\qquad t\in\mathbb{Z}
+\end{equation}
+where $\pmb{\phi}$ and $\pmb{\theta}$ are polynomials of degrees $p$ and $q$, respectively. That is,
+\begin{equation}
+\pmb{\phi}(z)=1-\phi_1z-...-\phi_pz^p,
+\end{equation}
+\begin{equation}
+\pmb{\theta}(z)=1+\theta_1z+...+\theta_qz^q
+\end{equation}
+and $B$ being the backshift operator also know as lag operator and it is defined by:
+\begin{equation}
+B^jX_t=X_{t-j};\qquad j\in\mathbb{Z}.
+\end{equation}
+
+The $\phi_i$ are the parameters of the AR polynomial, and the $\theta_j$ are the parameters of the MA polynomial.\footnote{An ARMA$(p,q)$ model is stationary iff the modulus of roots of the autoregressive polynomial are bigger than one.}\\ 
+
+There are time series that are not stationary but with simple transformations they become stationary. Some of these simple transformation are the regular and seasonal difference.
+
+\begin{definition}
+A seasonal differencing with season $s>1$ is a transformation applied to time serie in order to make it stationary. It is defined by\cite{ARMA}:
+\begin{equation}
+X_t^`=X_t-X_{t-s}.
+\end{equation}
+\end{definition}
+
+\begin{definition}
+A regular differencing is a transformation applied to time series in order to make it stationary. It is defined by \cite{arimahyndman}:
+\begin{equation}
+X_t^`=X_t-X_{t-1}.
+\end{equation}
+\end{definition}
+
+Regular and seasonal differences are very useful because they remove trend and seasonality and stabilize the time series.\\
+
+We have already discussed the class of ARMA models for representing stationary series. We can generalize the ARMA$(p,q)$ model to an AutoRegressive Integrated Moving Average ARIMA$(p,d,q)$, which are useful to handle series that shows evidence of non-stationarity. 
+
+\begin{definition}
+If $d$ is a non-negative integer, ${X_t}$ follows an Auto Regressive Integrated Moving Average ARIMA$(p,d,q)$ if $Y_t:=(1-B)^dX_t$ is a stationary ARMA process.\cite{ARMA}
+\end{definition}
+This definition means that $X_t$ verifies a difference equation of the form:
+\begin{equation}
+\phi^*(B)X_t\equiv \phi(B)(1-B)^dX_t=\theta(B)Z_t; Z_t\sim WN(0,\sigma^2).
+\end{equation}
+
+It is easy to check that if $d=0$ the model is an ARMA$(p,q)$ process. It should be noticed that the roots of $\phi^*(B)$ polynomials are one or bigger than one on modulus.\\
+
+Additionally, can extend the ARIMA models to seasonal time series, this is the special case of the general seasonal ARIMA(SARIMA) model defined as follows.\\
+ 
+\begin{definition}
+If $d$ and $D$ are nonnegative integers, then ${X_t}$ follows a seasonal ARIMA$(p,d,q)(P,D,Q)_s$ process with season $s$ if the differenced series $Y_t=(1-B)^d(1-B^s)^DX_t$ is a stationary ARMA process defined by \cite{arimahyndman}:
+\begin{equation}
+\phi(B)\Phi(B^s)Y_t=\theta(B)\Theta(B^s)Z_t ;\quad Z_t\sim WN(0,\sigma^2)
+\end{equation}
+where $\phi(z)=1-\phi_1 z-...-\phi_pz^p$; $\Phi(z)=1-\Phi_1 z-...-\Phi_Pz^P$; $\theta(z)=1+\theta_1z+...+\theta_qz^q$ and $\Theta(z)=1+\Theta_1z+...+\Theta_Qz^Q$.
+\end{definition}
+
+In order select the ``best'' model for a time series we can use the Akaike Information Criterion (AIC), the bias corrected version of Akaike information criterion (AICc) or the Bayesian Information Criterion (BIC) also known Schwarz criterion (SBC or SBIC).
+
+\begin{definition}
+The AIC value \cite{aic} of model $M$ with $k$ parameters to be estimated is defined by:
+\begin{equation}
+AIC = 2k-2\ln(\widehat{L}),
+\end{equation}
+where $\widehat{L}$ is the maximized value of the likelihood function of M.
+\end{definition}
+
+\begin{definition}
+AICc is AIC with a bias correction for finite sample sizes. The AICc value \cite{aicc} of model $M$ with $k$ parameters to be estimated is defined by:
+\begin{equation}
+AICc = AIC + \frac{2k(k+1)}{n-k+1},
+\end{equation}
+where $n$ is the sample size.
+\end{definition}
+
+\begin{definition}
+The BIC \cite{bic} value of model $M$ with $k$ parameters to be estimated is defined by:
+\begin{equation}
+BIC = \ln(n)k-2\ln(\widehat{L}),
+\end{equation}
+where $\widehat{L}$ is the maximized value of the likelihood function of $M$ and $n$ is the sample size.
+\end{definition}
+
+Given a set of candidate models, the model with minimum AIC(or AICc or BIC) value will be selected.
+
+\subsection{TBATS Models}
+The time series models presented at the previous section are designed to accommodate simple seasonal patterns with an integer-valued seasonal period. However, there are time series that exhibit more complex seasonal patterns including multiperiods and non-integer seasonal period. In this section, we present a class of models that are able to handle these complex structure.\\
+
+Single seasonal exponential smoothing methods, are the most widely used forecasting procedures in practice \cite{Snyder} and have been shown to be optimal for a class of state space models \cite{Ord}. Among this class, one of the most commonly used seasonal model is the additive (or multiplicative) Holt-Winter procedure. The following method is an extension of the Holt-Winters method, that incorporates a second seasonal component \cite{Taylor}:
+
+\begin{equation}
+y_t = l_{t-1}+b_{t-1}+s_t^{(1)}+s_t^{(2)}+d_t
+\end{equation}
+
+\begin{equation}
+l_t=l_{t-1}+b_{t-1}+\alpha d_t
+\end{equation}
+
+\begin{equation}
+b_t=b_{t-1}+\beta d_t
+\end{equation}
+
+\begin{equation}
+s_t^{(1)}=s_{t-m_1}^{(1)}+\gamma_1d_t
+\end{equation}
+
+\begin{equation}
+s_t^{(2)}=s_{t-m_2}^{(2)}+\gamma_2d_t,
+\end{equation}
+where $m_1$ and $m_2$ are the seasonal periods, $d_t$ is a white noise; the components $l_t$ and $b_t$ represent the level and trend components at time $t$, $s_t^{(i)}$ is the $i$th seasonal component at time $t$; $i={1,2}$. The smoothing parameters are the coefficients $\alpha$,$\beta$,$\gamma_1$ and $\gamma_2$ and the seeds or initial states variables are $l_0$,$b_0$,${s_{1-m_1}^{(1)},...,s_{0}^{(1)}}$ and ${s_{1-m_2}^{(2)},...,s_{0}^{(2)}}$.\\
+
+The above model can be extended by using a Box-Cox transformation \footnote{The Box-Cox transformation is a parametric function used to reduce anomalies such as non-additivity, non-normality and heteroscedasticity \cite{BoxCox}. It is defined by the following expression: 
+\begin{equation}
+y_{t}^{(\omega)}=\left\{\begin{matrix}
+\frac{y_{t}^{\omega}-1}{\omega};\quad \omega\neq 0\\ 
+\log y_t;\quad \omega=0
+\end{matrix}\right..
+\end{equation}}, $ARMA$ errors and T seasonal patterns to handle a wider variety of seasonal patterns as follows\cite{tbats}:
+
+\begin{equation}\label{eq:prin}
+y_{t}^{(\omega)}=l_{t-1}+\phi b_{t-1}+\sum_{i=1}^{I}s_{t-m_i}^{(i)}+d_t
+\end{equation}
+
+\begin{equation}
+l_t=l_{t-1}+\phi b_{t-1}+\alpha d_t
+\end{equation}
+
+\begin{equation}
+b_t = (1-\phi)b+\phi b_{t-1}+\beta d_t
+\end{equation}
+
+\begin{equation}
+s_t^{(i)}=s_{t-m_i}^{(i)}+\gamma_id_t
+\end{equation}
+
+\begin{equation}\label{eq:fin}
+d_t=\sum_{i=1}^{p}\varphi_id_{t-i}+\sum_{i=1}^{q}\theta_i\varepsilon_{t-i}+\varepsilon_t,
+\end{equation}
+where $y_{t}^{(\omega)}$ is the Box-Cox transformed series, $m_1,...,m_I$ are the seasonal periods, $l_t$ is the local level in period $t$, $b$ is the long-run trend, $b_t$ is the short-run trend in period $t$, $s_{t}^{(i)}$ represents the $i$th seasonal component at time $t$, $d_t$ denotes an ARMA$(p,q)$ and $\varepsilon_t$ is a Gaussian white noise with zero mean and constant variance $\sigma^2$. The smoothing parameters are the coefficients $\alpha$,$\beta$ and $\gamma_i$ for $i=\overline{1,I}$.\\
+
+The model defined by (\ref{eq:prin})-(\ref{eq:fin}) is denoted by BATS$(\omega,\phi,p,q,m_1,m_2,...,m_I)$ where the acronym results from \textbf{B}ox Cox transformation, \textbf{A}RMA errors, \textbf{T}rend and \textbf{S}easonal components. It generalized the Holt-Winter procedure but still does not consider the non-integer seasonal period case.\\
+
+In order to solve this last incovenience, the seasonalities are expressed by a trigonometric representation based on Fourier series as follows \cite{fourier}:
+
+\begin{equation}
+s_{t}^{(i)}=\sum_{j=1}^{k_i}s_{j,t}^{(i)}
+\end{equation}
+
+\begin{equation}
+s_{j,t}^{(i)}=s_{j,t-1}^{(i)}\cos\lambda_{j}^{(i)}+s_{j,t-1}^{*(i)}\sin\lambda_{j}^{(i)}+\gamma_{1}^{(i)}d_t
+\end{equation}
+
+\begin{equation}
+s_{j,t}^{*(i)}=-s_{j,t-1}\sin\lambda_{j}^{(i)}+s_{j,t-1}^{*(i)}\cos\lambda_{j}^{(i)}+\gamma_{2}^{(i)}d_t,
+\end{equation}
+where $\gamma_{1}^{(i)}$ and $\gamma_{2}^{(i)}$ are the smoothing parameters and $\lambda_{j}^{(i)}=\frac{2\pi j}{m_i}$. The terms $s_{j,t}^{(i)}$ and $s_{j,t}^{*(i)}$ are the stochastic level and the stochastic growth in the level of the $i$th seasonal component, respectively. The number of harmonics required for the $i$th seasonal component is $k_i=\frac{m_i}{2}$ for even values and $k_i=\frac{m_i-1}{2}$ for odd values of $m_i$. \\
+
+Now replacing the seasonal component $s_{t}^{(i)}$ in the BATS model and modifying the measurement equation $y_{t}^{(\omega)}=l_{t-1}+\phi b_{t-1}+\sum_{i=1}^{T}s_{t-1}^{(i)}+d_t$ we get TBATS, where the T means Trigonometric. This model depends on the following arguments ($\omega$,$\phi$,$p$,$q$,$\left \{ m_1,k_1\right \}$,...,$\left \{ m_T,k_T\right \}$). The TBATS model handles non-integer seasonal periods as well as nested and non-nested seasonal components. \cite{tbats}
+ 
+\subsection{Simple Linear Regression}
+In order to add some explanatory variables to our models we can use the simple linear regression to add one explicative variable. A linear regression model \cite{lse} is given by:
+
+\begin{equation}\label{eq:41}
+y_t=\alpha+\beta x_t+\varepsilon_t,
+\end{equation}
+where $\varepsilon_t$ is assumed to be a Gaussian white noise.\\
+
+The target is to find the best values of $\alpha$ and $\beta$ that give us the best fit, this can be done using least square estimation that minimize the sum of the squared errors\cite{lse} as follows:
+
+\begin{equation}
+\underset{\alpha,\beta}{\min} \sum_{t=1}^{n}(y_t-\alpha-\beta x_t)^2=\sum_{t=1}^{n}\varepsilon_t^2.
+\end{equation} 
+
+\subsection{Dynamic Factor Models}
+The models in the previous sections assume that the times series or the response
+variable are univariate. In this section, we present the dynamic factor models (DFM) a class of multivariate time series models that has been popularized in the last 20 years but was proposed in the eighties (see \cite{A} and \cite{E}). Those models have been used in EPF problem by \cite{Andres} and \cite{martos}, among others.\\
+
+The DFM assumes that $y_t$, an $m$-dimensional time series, can be written as a linear combination of common factors plus an error term:
+\begin{equation}\label{eq:2}
+\underset{m \times 1}{y_t} =  \underset{m \times r}{P}\underset{r\times1}{f_t}+\underset{m \times 1}{\epsilon_t},
+\end{equation}
+where $f_t$ is the $r$-dimensional vector of common factors, $P$ is the weight matrix of the factors also known as loading matrix, and $\epsilon_t$ is the vector of specific factors or error term.\\
+Additionally, it is assumed that the vector of common factors follows a seasonal
+VARIMA$(p,d,q)(P,D,Q)_s$ model defined by:
+\begin{equation}\label{eq:3}
+\underset{r\times r}{\phi(B)} \underset{r\times r}{\Phi(B)} \underset{r\times 1}{f(t)}= \underset{r\times r}{\theta (B)} \underset{r\times r}{\Theta (B)} \underset{r\times 1}{\upsilon_t},
+\end{equation}
+where $B$ is the lag operator, $\phi(B)=I-\phi_1B-...-\phi_pB^p$ and $\theta(B)=I-\theta_1B-...-\theta_qB^q$ are $r\times r$ matrices of autoregressive polynomials and moving averages of the regular part respectively and $\Phi(B)=I-\Phi_1B-...-\Phi_PB^P$ and $\Theta(B)=I-\Theta_1B-...-\Theta_QB^Q$ of the seasonal part. The innovations are assumed to be time independent, e.g., $E(\upsilon_t,\upsilon_t+h)=0$ for  $h\neq 0$ and independent of specific factors, e.g., $E(\upsilon_t,\epsilon_t+h)=0$ for all $h$. For the specific factors, $\epsilon_t$, we assume that each component follows an univariate seasonal ARMA model.\\
+
+The factorial model defined by (\ref{eq:2})-(\ref{eq:3}) is not identified since for any non-singular $r\times r$ matrix, $\Omega$, it is possible to express the vector series $y_t$ in terms of ($P\Omega$) and ($\Omega^{-1}f_t$) which are new sets of weights and factors, respectively. Several restrictions have been proposed to solve the problem of identification, e.g., $\sum_\epsilon$ or $P^{'}P=I$ \cite{F}, and $P=[p_{i,j}]$ with $p_{i,j}=0$ for $j>i$ \cite{B}. In this thesis, we use the restriction $P^{'}P=I$ and we assume that the factors are orthogonal, i.e, for, $f_{\cdot ,i}\perp f_{\cdot ,j}$ for $i \neq j$, as in \cite{D} and \cite{martos}.\\
+
+Also, as in \cite{martos}, we will consider a simpler version of the DFM where
+the common factor follows seasonal ARIMA models. A relevant step in DFM is the
+selection of the seasonal ARIMA (ARMA) models that approximate the common
+(specific) factors dynamical structure. In \cite{martos}, the TRAMO-SEATS procedure \cite{B} was used to select the order of those models but in this thesis, since our implementation is on R, we will use the auto.arima function which is included in the package forecast \cite{forecast}. 
+
+\subsection{Forecasting Accuracy Measure}
+Many measures of forecast accuracy have been proposed in the literature. In EPF the most frequently used measures of accuracy are those based on absolute errors $\left | y_t-\widehat{y_t}  \right |$ where $y_t$ is the actual value at time $t$ and $\widehat{y_t}$ is the predicted value. Since it is difficult to compare the accuracy of the models in different datasets using the absolute errors, many authors use measures based on absolute percentage errors as \textit{MAPE} (Mean Absolut Percentage Error) defined by:
+\begin{equation}
+MAPE=\frac{100}{n}\sum_{t=1}^{n}\left | \frac{y_t-\widehat{y_t}}{y_t} \right |,
+\end{equation}
+where $y_t$ is the real price and $\widehat{y_t}$ is the corresponding forecast.\\
+
+There are some inconveniences in using this accuracy measure even when is the most popular \cite{review} in EPF. One of the disadvantage when we use MAPE is that it put heavier penalty on positive errors than on negative errors. If $y_t$ is close to zero probably $\widehat{y_t}$ is also close to zero. However the MAPE still involves a division by a number close to zero. Other disadvantage of measures based on percentage errors is that they assume a meaningful zero \cite{Error}. For example it doesn't have sense in measuring forecast error in the others European markets where there are negative prices. Due to this inconvenient we decided to use two more accuracy measure, \textit{MAE} (Mean Absolute Error) and \textit{MDAE} (Median Absolute Error) defined as follows:
+\begin{equation}
+MAE=\frac{1}{n}\sum_{t=1}^{n}\left | y_t-\widehat{y_t} \right |
+\end{equation}
+and
+\begin{equation}
+MDAE=median(\left | y_t-\widehat{y_t} \right |).
+\end{equation}
+
+We will show the accuracy of each model tested in MAPE, MAE and MDAE, selecting the best model according to MAE.
+
+\subsection{Model selection criteria based on prediction performance}
+When selecting models, it is common to use a portion of the available data for fitting (data train), and use the rest of the data for evaluating the model performance (data test). In order to choose the ``best'' model, we used a procedure known as rolling forecasting origin. It works as follows \cite{arimahyndman}:
+\begin{enumerate}
+\item Select the data train windows with a fixed size. 
+\item Train a model (in our case automatically without user intervention).
+\item Forecast the period in which we are interested.
+\item Obtain the prediction errors as the difference between the real values and the forecasted values.
+\item Compute the prediction accuracy. 
+\item Update the train set with the real values of the period that was forecasted.
+\item Remove in the train set the first values with length equal to the forecasted period.
+\end{enumerate}
+
+The above seven step procedure is repeated until the end of the test set. Figure \ref{fig:rolling} illustrates the rolling forecasting origin procedure.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/TrainTest.jpg}
+\caption{Illustration of the rolling forecasting origin procedure.}
+\label{fig:rolling}
+\end{figure}
+
+We are going to select the model whose MAE distribution have the lower third quartile (Q3). We prefer Q3 instead of the mean since the mean can be affected by outliers. The model associated to the better distribution taking in account Q3 will be selected as the best model and it will be used to forecast future values in the developed app (see section \ref{APP}). 
+
+\subsection{Prediction Intervals}
+In this section, we describe a simple procedure for obtaining prediction intervas. It makes use of the recorded prediction errors as well as bootstrap techniques. A prediction interval is an interval associated with a random variable yet to be observed, with a specified probability of the random variable lying within the interval.\cite{intervalshyndman} For example, I can give $(1-\alpha)\%$ interval for the forecast of the electricity prices for tomorrow, so the prices for tomorrow should be on the interval with probability $1-\alpha$.\footnote{Confidences and predictions intervals are not the same thing. Unfortunately both concepts are usually confused for example in econometrics is very common use “confidence intervals" as prediction interval.\cite{Granger}} \\
+
+Once we performed the rolling forecasting origin procedure, we have a set of prediction errors for each instant/origin $t$ in the testing set and for the different horizons. For instance, in the case of prediction horizon of 24 hours, we have the following prediction errors set:
+\begin{equation}
+\left[\begin{array}{cccc} e_{1,1} & e_{1,2} & \ldots & e_{1,24} \\ 
+e_{2,1} & e_{2,2} & \ldots & e_{2,24}\\
+\vdots & \vdots & \ddots & \vdots \\
+e_{N,1} & e_{N,2} & \ldots & e_{N,24}\\\end{array}\right],
+\end{equation}
+where $e_{t,h}$ corresponds to the prediction error at origin $t$ for hour $h$ and $N$ is the length of the testing set. \\
+
+Then, a $(1-\alpha)\%$ prediction intervals for $y_{t,h}$ can be obtained by the following expression:
+\begin{equation}
+\hat{y}_{t,h} \pm z_{\alpha/2}\sigma({\varepsilon_{t,h}}),
+\end{equation}
+where $z_{\alpha/2}$ is the percentile of the standard Gaussian distribution and $\sigma({\varepsilon_{t,h}})$ is the standard deviation of the prediction error, $\varepsilon_{t,h}$. In order to obtain a bias-corrected estimates of these standards deviations, a bootstrap procedure (with $B=100000$ replicas) for each one of the horizon, $h$, was performed. That is, we generate $B$ replicas of the prediction error set
+\begin{equation}
+\left[\begin{array}{cccc} e_{1,1}^{(*,b)} & e_{1,2}^{(*,b)} & \ldots & e_{1,24}^{(*,b)} \\ 
+e_{2,1}^{(*,b)} & e_{2,2}^{(*,b)} & \ldots & e_{2,24}^{(*,b)}\\
+\vdots & \vdots & \ddots & \vdots \\
+e_{N,1}^{(*,b)} & e_{N,2}^{(*,b)} & \ldots & e_{N,24}^{(*,b)}\\\end{array}\right],
+\end{equation}
+where $b = 1, 2, \ldots, B$. At each replica, we calculate the standard deviation for each one of the horizon. The bias corrected estimate is obtained by
+\begin{equation}
+\sigma(\varepsilon_{t,h})- \left(E^{*}\left[\sigma(\varepsilon_{t,h}^{*})\right] - \sigma(\varepsilon_{t,h})\right) = 2 \sigma(\varepsilon_{t,h}) - E^{*}\left[\sigma(\varepsilon_{t,h}^{*})\right],
+\end{equation}
+where $E^{*}$ denotes the bootstrap mean. 
+
+\newpage
+\section{Forecasting exercises}
+Our goal is to obtain automatic models that forecast the prices for different horizons size. We have decided to select the best model according to the data that we have and not select a fixed model that can't be effective over time. For example, given a time series $X_t$ we can select a model $M_1$ that is slightly better than another model $M_2$, but after two months maybe the second model is better than the first one. So it is important highlight this aspect, we will not use a fixed model, that is, we will automatically select, using, R the best model according to a set of parameters and conditions.\\
+
+In our case we are going to predict the electricity prices for the following horizons:
+\begin{itemize}
+	\item 1-24 hours (One day ahead)
+	\item 1-144 hours (Six days)
+	\item 1-30 days (One month)
+	\item 1-12 months (One year)
+\end{itemize}
+
+The algorithms and tools presented in the section of \textbf{Methodology} will be used independently or combined to reach our goal.
+
+\subsection{Forecasting 24 hours}
+Thanks to the website \textit{\url{https://www.esios.ree.es/es}}, we can download the following explanatory variables using the API:
+\begin{itemize}
+\item Daily Peninsular Demand Forecast.
+\item Peninsular Wind Power Generation Forecast.
+\item Solar PV Generation Forecast.
+\item Solar Thermal Forecast.
+\end{itemize}
+
+The difference between Solar Termal and Solar PV is the following, solar thermal electric energy generation concentrates the light from the sun to create heat, and that heat is used to run a heat engine, which turns a generator to make electricity. On the other hand photovoltaic, or PV energy conversion, directly converts the sun's light into electricity. This means that solar panels are only effective during daylight hours because storing electricity is not a particularly efficient process. Heat storage is a far easier and efficient method, which is what makes solar thermal so attractive for large-scale energy production. Heat can be stored during the day and then converted into electricity at night. Solar thermal plants that have storage capacities can drastically improve both the economics and the dispatchability of solar electricity.\cite{solar}\\
+
+For this exercise our test data  begin on January 1st, 2016 until June 30th, 2017. We considered different machine learning algorithms like SVM with linear, polynomial and radial kernel, KNN and Gaussian process with radial and polynomial kernel. We will use different training windows sizes, DFM was considered too. The accuracy for each day forecasted was measured using MAE, MAPE and MDAE. In the machine learning case it was used the following relationship: 
+
+\begin{align*}\label{eq:Relacion}
+Price \sim & Daily Peninsular Demand Forecast  \\
+           & + Peninsular Wind Power Generation Forecast  \\
+           & + Solar PV Generation Forecast  \\
+           & + Solar Thermal Forecast.
+\end{align*}
+
+The SVM, Gaussian Process and KNN models were trained using the package \textit{caret} (Classification And Regression Training) that contains tools for data splitting, pre-processing, feature selection, model tuning using resampling, variable importance estimation as well as other functionalities. It is known that are many different modeling functions in R. For model training and/or prediction some have different syntax. The package \textit{caret} started off as a way to provide a uniform interface the functions themselves, as well as a way to standardize common tasks (such parameter tuning and variable importance) \cite{caret}. The tuning of hyper parameter was done using grid search.\\
+
+In the next tables we can observe the accuracies of each method for different training windows size.
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for SVM with linear kernel, 1-24 Hours.}
+\label{table:Table SVM 1-24}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.57 & 2.13 & 2.94   & 3.39  & 3.96  & 18.26  \\ \cline{2-8} 
+                    & MAPE             & 1.26 & 4.64 & 6.61   & 12.46 & 10.65 & 272.45 \\ \cline{2-8} 
+                    & MDAE             & 0.38 & 1.77 & 2.61   & 3.12  & 3.83  & 17.22  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.72 & 2.17 & 3.04   & 3.64  & 4.46  & 14.33  \\ \cline{2-8} 
+                    & MAPE             & 1.59 & 4.64 & 7.08   & 13.88 & 11.43 & 325.62 \\ \cline{2-8} 
+                    & MDAE             & 0.45 & 1.79 & 2.72   & 3.39  & 4.23  & 16.52  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.74 & 2.24 & 3.15   & 4.01  & 4.70  & 17.00  \\ \cline{2-8} 
+                    & MAPE             & 1.72 & 4.77 & 7.40   & 15.06 & 12.87 & 347.72 \\ \cline{2-8} 
+                    & MDAE             & 0.52 & 1.89 & 2.78   & 3.76  & 4.50  & 17.30  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.62 & 2.57 & 3.63   & 4.96  & 6.25  & 20.77  \\ \cline{2-8} 
+                    & MAPE             & 1.55 & 5.46 & 9.13   & 17.24 & 17.08 & 339.39 \\ \cline{2-8} 
+                    & MDAE             & 0.51 & 2.23 & 3.37   & 4.78  & 6.21  & 21.56  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.63 & 2.90 & 4.81   & 6.15  & 8.78  & 22.16  \\ \cline{2-8} 
+                    & MAPE             & 1.46 & 6.38 & 12.17  & 21.44 & 20.53 & 405.32 \\ \cline{2-8} 
+                    & MDAE             & 0.54 & 2.48 & 4.24   & 5.95  & 8.43  & 21.81  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for SVM with polynomial kernel, 1-24 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.44 & 2.03 & 2.95   & 3.59  & 4.24  & 30.55  \\ \cline{2-8} 
+                    & MAPE             & 1.06 & 4.48 & 6.70   & 13.23 & 10.81 & 252.70 \\ \cline{2-8} 
+                    & MDAE             & 0.33 & 1.69 & 2.48   & 3.12  & 3.89  & 32.22  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.68 & 2.09 & 3.03   & 3.66  & 4.54  & 31.95  \\ \cline{2-8} 
+                    & MAPE             & 1.67 & 4.55 & 7.08   & 13.53 & 12.05 & 293.92 \\ \cline{2-8} 
+                    & MDAE             & 0.43 & 1.68 & 2.66   & 3.31  & 4.20  & 35.07  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.49 & 2.08 & 3.07   & 3.97  & 4.84  & 19.40  \\ \cline{2-8} 
+                    & MAPE             & 1.08 & 4.61 & 7.29   & 14.37 & 12.72 & 293.52 \\ \cline{2-8} 
+                    & MDAE             & 0.32 & 1.75 & 2.79   & 3.67  & 4.48  & 18.63  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.49 & 2.38 & 3.53   & 4.75  & 6.09  & 16.80  \\ \cline{2-8} 
+                    & MAPE             & 1.20 & 5.10 & 8.57   & 16.48 & 16.41 & 312.16 \\ \cline{2-8} 
+                    & MDAE             & 0.49 & 2.01 & 3.22   & 4.50  & 5.84  & 18.45  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.55 & 2.60 & 4.58   & 5.83  & 8.02  & 21.03  \\ \cline{2-8} 
+                    & MAPE             & 1.36 & 6.01 & 11.05  & 19.96 & 19.41 & 381.17 \\ \cline{2-8} 
+                    & MDAE             & 0.49 & 2.23 & 4.33   & 5.57  & 7.69  & 22.64  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for SVM with radial kernel, 1-24 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.71 & 2.38 & 3.36   & 4.19  & 5.03  & 27.49  \\ \cline{2-8} 
+                    & MAPE             & 1.40 & 5.22 & 7.68   & 16.75 & 13.81 & 399.84 \\ \cline{2-8} 
+                    & MDAE             & 0.55 & 1.97 & 2.95   & 3.88  & 4.74  & 34.02  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.79 & 2.28 & 3.36   & 4.13  & 5.07  & 25.95  \\ \cline{2-8} 
+                    & MAPE             & 1.88 & 5.12 & 7.80   & 15.93 & 13.09 & 349.40 \\ \cline{2-8} 
+                    & MDAE             & 0.52 & 1.83 & 2.96   & 3.81  & 4.94  & 33.45  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.76 & 2.35 & 3.35   & 4.37  & 5.50  & 27.97  \\ \cline{2-8} 
+                    & MAPE             & 1.82 & 5.12 & 7.74   & 16.66 & 14.56 & 344.37 \\ \cline{2-8} 
+                    & MDAE             & 0.43 & 1.92 & 2.96   & 4.03  & 5.15  & 37.05  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.83 & 2.50 & 3.82   & 5.00  & 6.44  & 24.11  \\ \cline{2-8} 
+                    & MAPE             & 1.58 & 5.50 & 9.12   & 17.86 & 17.72 & 311.99 \\ \cline{2-8} 
+                    & MDAE             & 0.54 & 2.09 & 3.44   & 4.70  & 6.15  & 31.86  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.93 & 2.87 & 4.73   & 5.94  & 8.12  & 26.34  \\ \cline{2-8} 
+                    & MAPE             & 2.27 & 6.45 & 11.08  & 20.84 & 20.58 & 364.50 \\ \cline{2-8} 
+                    & MDAE             & 0.62 & 2.39 & 3.98   & 5.64  & 7.82  & 25.13  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for Gaussian Process with polynomial kernel, 1-24 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.46 & 1.98 & 2.77   & 3.45  & 4.12  & 34.22  \\ \cline{2-8} 
+                    & MAPE             & 1.10 & 4.33 & 6.49   & 12.70 & 10.44 & 247.05 \\ \cline{2-8} 
+                    & MDAE             & 0.39 & 1.66 & 2.51   & 3.06  & 3.81  & 31.44  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.69 & 2.05 & 2.96   & 3.57  & 4.44  & 19.92  \\ \cline{2-8} 
+                    & MAPE             & 1.49 & 4.54 & 6.76   & 13.29 & 11.58 & 281.98 \\ \cline{2-8} 
+                    & MDAE             & 0.42 & 1.70 & 2.60   & 3.25  & 4.04  & 20.49  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.54 & 2.08 & 3.00   & 3.89  & 4.66  & 18.25  \\ \cline{2-8} 
+                    & MAPE             & 1.19 & 4.59 & 7.06   & 14.07 & 12.33 & 283.66 \\ \cline{2-8} 
+                    & MDAE             & 0.40 & 1.73 & 2.75   & 3.60  & 4.43  & 17.39  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.56 & 2.37 & 3.53   & 4.68  & 5.98  & 16.35  \\ \cline{2-8} 
+                    & MAPE             & 1.30 & 5.24 & 8.58   & 16.12 & 15.91 & 297.25 \\ \cline{2-8} 
+                    & MDAE             & 0.52 & 2.02 & 3.28   & 4.46  & 5.98  & 17.85  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.57 & 2.76 & 4.79   & 5.81  & 8.03  & 20.01  \\ \cline{2-8} 
+                    & MAPE             & 1.40 & 6.21 & 11.74  & 19.71 & 19.45 & 368.53 \\ \cline{2-8} 
+                    & MDAE             & 0.45 & 2.44 & 4.45   & 5.57  & 7.74  & 21.61  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for Gaussian Process with radial kernel, 1-24 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.54 & 2.26 & 3.25   & 4.02  & 5.01  & 27.29  \\ \cline{2-8} 
+                    & MAPE             & 1.25 & 4.89 & 7.54   & 15.92 & 13.04 & 393.21 \\ \cline{2-8} 
+                    & MDAE             & 0.36 & 1.86 & 2.83   & 3.71  & 4.61  & 29.99  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.72 & 2.17 & 3.12   & 3.95  & 4.88  & 22.66  \\ \cline{2-8} 
+                    & MAPE             & 1.74 & 4.77 & 7.36   & 15.14 & 13.31 & 302.48 \\ \cline{2-8} 
+                    & MDAE             & 0.41 & 1.80 & 2.83   & 3.68  & 4.68  & 28.57  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.78 & 2.19 & 3.13   & 4.17  & 5.11  & 23.72  \\ \cline{2-8} 
+                    & MAPE             & 1.60 & 4.82 & 7.38   & 15.71 & 13.88 & 314.52 \\ \cline{2-8} 
+                    & MDAE             & 0.46 & 1.88 & 2.87   & 3.89  & 4.93  & 30.75  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.63 & 2.45 & 3.57   & 4.82  & 6.14  & 23.09  \\ \cline{2-8} 
+                    & MAPE             & 1.55 & 5.41 & 8.81   & 17.02 & 16.67 & 288.01 \\ \cline{2-8} 
+                    & MDAE             & 0.39 & 2.08 & 3.27   & 4.59  & 5.91  & 29.91  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.69 & 2.77 & 4.52   & 5.82  & 8.18  & 25.00  \\ \cline{2-8} 
+                    & MAPE             & 1.70 & 6.25 & 11.04  & 20.23 & 19.75 & 341.77 \\ \cline{2-8} 
+                    & MDAE             & 0.56 & 2.46 & 4.09   & 5.57  & 7.72  & 21.54  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for KNN, 1-24 Hours.}
+\label{table:Table KNN 1-24}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{7}  & MAE              & 0.73 & 2.37 & 3.21   & 3.89  & 4.66  & 21.43  \\ \cline{2-8} 
+                    & MAPE             & 1.59 & 4.95 & 7.60   & 15.00 & 13.06 & 327.68 \\ \cline{2-8} 
+                    & MDAE             & 0.43 & 1.89 & 2.81   & 3.45  & 4.14  & 22.67  \\ \hline
+\multirow{3}{*}{14} & MAE              & 0.75 & 2.32 & 3.21   & 3.96  & 4.98  & 19.10  \\ \cline{2-8} 
+                    & MAPE             & 1.42 & 5.03 & 7.58   & 15.05 & 12.71 & 307.05 \\ \cline{2-8} 
+                    & MDAE             & 0.47 & 1.82 & 2.80   & 3.55  & 4.49  & 21.63  \\ \hline
+\multirow{3}{*}{21} & MAE              & 0.79 & 2.33 & 3.38   & 4.25  & 5.30  & 20.04  \\ \cline{2-8} 
+                    & MAPE             & 1.66 & 5.09 & 8.06   & 15.85 & 14.23 & 303.76 \\ \cline{2-8} 
+                    & MDAE             & 0.52 & 1.93 & 3.01   & 3.88  & 4.96  & 22.23  \\ \hline
+\multirow{3}{*}{42} & MAE              & 0.75 & 2.55 & 3.93   & 4.94  & 6.20  & 20.16  \\ \cline{2-8} 
+                    & MAPE             & 1.56 & 5.64 & 9.13   & 17.23 & 17.00 & 303.38 \\ \cline{2-8} 
+                    & MDAE             & 0.58 & 2.18 & 3.27   & 4.57  & 5.87  & 22.69  \\ \hline
+\multirow{3}{*}{84} & MAE              & 0.87 & 2.96 & 4.69   & 5.98  & 8.30  & 23.86  \\ \cline{2-8} 
+                    & MAPE             & 1.72 & 6.45 & 11.17  & 20.85 & 20.39 & 384.46 \\ \cline{2-8} 
+                    & MDAE             & 0.65 & 2.57 & 4.25   & 5.62  & 8.03  & 25.68  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for DFM, 1-24 Hours.}
+\label{fig: Table DFM 1-24}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE              & 0.75 & 2.91 & 4.34   & 5.27  & 6.56  & 28.75  \\ \cline{2-8} 
+                     & MAPE             & 1.52 & 6.58 & 10.18  & 18.05 & 17.27 & 360.30 \\ \cline{2-8} 
+                     & MDAE             & 0.53 & 2.51 & 3.98   & 5.05  & 6.45  & 32.47  \\ \hline
+\multirow{3}{*}{200} & MAE              & 0.99 & 2.89 & 4.40   & 5.16  & 6.40  & 27.18  \\ \cline{2-8} 
+                     & MAPE             & 2.21 & 6.26 & 10.20  & 18.00 & 16.65 & 356.61 \\ \cline{2-8} 
+                     & MDAE             & 0.63 & 2.49 & 3.96   & 4.97  & 6.32  & 30.27  \\ \hline
+\multirow{3}{*}{300} & MAE              & 0.88 & 2.76 & 4.14   & 5.01  & 6.30  & 27.87  \\ \cline{2-8} 
+                     & MAPE             & 2.12 & 6.15 & 9.90   & 17.49 & 16.32 & 364.77 \\ \cline{2-8} 
+                     & MDAE             & 0.56 & 2.40 & 3.76   & 4.83  & 6.17  & 30.90  \\ \hline
+\multirow{3}{*}{400} & MAE              & 0.57 & 2.72 & 4.20   & 4.94  & 6.31  & 28.13  \\ \cline{2-8} 
+                     & MAPE             & 1.36 & 6.24 & 9.85   & 17.35 & 15.83 & 365.14 \\ \cline{2-8} 
+                     & MDAE             & 0.46 & 2.34 & 3.71   & 4.73  & 6.12  & 31.57  \\ \hline
+\multirow{3}{*}{500} & MAE              & 0.56 & 2.71 & 4.16   & 4.96  & 6.28  & 28.12  \\ \cline{2-8} 
+                     & MAPE             & 1.33 & 6.18 & 9.64   & 17.75 & 16.13 & 368.16 \\ \cline{2-8} 
+                     & MDAE             & 0.35 & 2.32 & 3.72   & 4.77  & 6.25  & 31.66  \\ \hline
+\end{tabular}
+\end{table}
+
+The best machine learning algorithm according to Q3 in the MAE's distribution is SVM with linear kernel using the last 7 days. Figure \ref{Good_SVM_1-24} shows the hourly predictions in a day with a MAE close to the median, this means that approximately the half of the cases will have a MAE smaller or equal to this graph. On the other hand in Figure \ref{Bad_SVM_1-24} we can observe a poor prediction with a high MAE, we can observe how the MAPE is high because the real values are close to zero.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/SVM_Good.eps}
+\caption{Real and predicted prices when a low MAE is obtained using SVM with linear kernel for the next 24 hours.}
+\label{Good_SVM_1-24}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/SVM_Bad.eps}
+\caption{Real and predicted prices when a high MAE is obtained using SVM with linear kernel for the next 24 hours.}
+\label{Bad_SVM_1-24}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/MAE_24.png}
+\caption{Daily MAE for 1-24 Hours from January 1st, 2016 to June 30th, 2017.}
+\end{figure}
+
+\subsection{Forecasting 144 hours}
+For this exercise our data test begin January 1st, 2016 to June 30th, 2017. On the other hand, we face with the inconvenient that E-SIOS only provides the prediction for the demand of the next 168 hours, so the only variable that we can use is the Demand, obtaining the following relationship \textbf{Price $\sim$ Demand}. In this context, we decide to use the dynamic factor model approach that has been proven to be effective in the weak-ahead horizon. Additionally, we will combine the DFM with a simple linear regression between price and demand. We first obtain the residuals of model (\ref{eq:41}) where $y_t$ is the price at time $t$ and $x_t$ is the corresponding demand. Then, we fix a DFM to the obtained residuals.
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for DFM with r=2, 1-144 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min  & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE     & 1.75 & 4.28 & 5.82   & 6.85  & 8.08  & 28.53  \\ \cline{2-8} 
+                     & MAPE    & 4.25 & 9.34 & 13.43  & 23.96 & 27.30 & 195.63 \\ \cline{2-8} 
+                     & MDAE    & 1.36 & 3.58 & 5.04   & 6.15  & 7.24  & 30.10  \\ \hline
+\multirow{3}{*}{200} & MAE     & 1.58 & 4.38 & 5.73   & 6.65  & 7.58  & 28.75  \\ \cline{2-8} 
+                     & MAPE    & 3.84 & 9.33 & 13.56  & 23.93 & 26.71 & 218.38 \\ \cline{2-8} 
+                     & MDAE    & 1.20 & 3.67 & 4.94   & 5.95  & 6.84  & 29.68  \\ \hline
+\multirow{3}{*}{300} & MAE     & 1.61 & 4.13 & 5.45   & 6.41  & 7.22  & 25.96  \\ \cline{2-8} 
+                     & MAPE    & 3.94 & 8.68 & 12.59  & 22.88 & 27.30 & 210.04 \\ \cline{2-8} 
+                     & MDAE    & 1.33 & 3.46 & 4.78   & 5.74  & 6.37  & 27.90  \\ \hline
+\multirow{3}{*}{400} & MAE     & 1.99 & 3.78 & 5.09   & 5.78  & 6.95  & 20.50  \\ \cline{2-8} 
+                     & MAPE    & 4.31 & 7.89 & 11.46  & 21.76 & 24.08 & 167.82 \\ \cline{2-8} 
+                     & MDAE    & 1.32 & 3.22 & 4.41   & 5.17  & 6.05  & 21.39  \\ \hline
+\multirow{3}{*}{500} & MAE     & 1.57 & 4.05 & 5.49  & 6.19  & 7.12  & 24.46  \\ \cline{2-8} 
+                     & MAPE    & 3.80 & 8.65 & 12.48 & 23.31 & 25.86 & 183.01 \\ \cline{2-8} 
+                     & MDAE    & 1.28 & 3.43 & 4.85  & 5.57  & 6.41  & 24.48  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for DFM with r=3, 1-144 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE     & 1.84                      & 4.15 & 5.69   & 6.77  & 7.95  & 28.33  \\ \cline{2-8} 
+                     & MAPE    & 4.63                      & 8.95 & 13.28  & 23.72 & 27.05 & 195.06 \\ \cline{2-8} 
+                     & MDAE    & 1.60                      & 3.52 & 4.94   & 6.08  & 7.11  & 29.91  \\ \hline
+\multirow{3}{*}{200} & MAE     & \multicolumn{1}{l|}{1.63} & 4.24 & 5.63   & 6.60  & 7.58  & 28.76  \\ \cline{2-8} 
+                     & MAPE    & 3.98                      & 9.06 & 13.37  & 23.69 & 26.50 & 218.29 \\ \cline{2-8} 
+                     & MDAE    & 1.33                      & 3.58 & 4.80   & 5.86  & 6.80  & 29.64  \\ \hline
+\multirow{3}{*}{300} & MAE     & 1.58                      & 4.01 & 5.38   & 6.40  & 7.14  & 26.30  \\ \cline{2-8} 
+                     & MAPE    & 3.88                      & 8.45 & 12.28  & 22.69 & 26.73 & 211.18 \\ \cline{2-8} 
+                     & MDAE    & 1.29                      & 3.39 & 4.71   & 5.68  & 6.37  & 27.94  \\ \hline
+\multirow{3}{*}{400} & MAE     & 1.58                      & 4.06 & 5.43   & 6.07  & 7.00  & 21.76  \\ \cline{2-8} 
+                     & MAPE    & 3.85                      & 8.41 & 12.31  & 21.84 & 25.19 & 156.97 \\ \cline{2-8} 
+                     & MDAE    & 1.33                      & 3.47 & 4.72   & 5.44  & 6.26  & 23.55  \\ \hline
+\multirow{3}{*}{500} & MAE     & 1.58                      & 3.97 & 5.43   & 6.13  & 7.06  & 24.69  \\ \cline{2-8} 
+                     & MAPE    & 3.85                      & 8.52 & 12.40  & 23.07 & 25.42 & 180.99 \\ \cline{2-8} 
+                     & MDAE    & 1.37                      & 3.42 & 4.83   & 5.52  & 6.34  & 25.54  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for LR + DFM with r=2, 1-144 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE     & 1.95                      & 4.08 & 5.47   & 6.33  & 7.62  & 21.80  \\ \cline{2-8} 
+                     & MAPE    & 3.58                      & 8.57 & 12.83  & 21.85 & 26.60 & 177.91 \\ \cline{2-8} 
+                     & MDAE    & 1.40                      & 3.43 & 4.82   & 5.78  & 6.92  & 22.09  \\ \hline
+\multirow{3}{*}{200} & MAE     & \multicolumn{1}{l|}{2.39} & 4.19 & 5.31   & 6.39  & 7.59  & 22.58  \\ \cline{2-8} 
+                     & MAPE    & 5.58                      & 8.82 & 12.32  & 23.50 & 26.36 & 183.20 \\ \cline{2-8} 
+                     & MDAE    & 1.76                      & 3.50 & 4.60   & 5.75  & 6.84  & 23.13  \\ \hline
+\multirow{3}{*}{300} & MAE     & 2.11                      & 3.75 & 5.02   & 5.80  & 6.91  & 21.24  \\ \cline{2-8} 
+                     & MAPE    & 4.19                      & 7.98 & 11.50  & 21.71 & 24.09 & 170.84 \\ \cline{2-8} 
+                     & MDAE    & 1.61                      & 3.20 & 4.32   & 5.19  & 6.12  & 21.55  \\ \hline
+\multirow{3}{*}{400} & MAE     & 1.99                      & 3.78 & 5.09   & 5.78  & 6.95  & 20.50  \\ \cline{2-8} 
+                     & MAPE    & 4.31                      & 7.89 & 11.50  & 21.76 & 24.08 & 167.82 \\ \cline{2-8} 
+                     & MDAE    & 1.32                      & 3.22 & 4.41   & 5.17  & 6.05  & 21.39  \\ \hline
+\multirow{3}{*}{500} & MAE     & 1.97                      & 3.65 & 4.96   & 5.73  & 6.68  & 20.61  \\ \cline{2-8} 
+                     & MAPE    & 4.55                      & 7.60 & 11.57  & 21.73 & 24.04 & 165.55 \\ \cline{2-8} 
+                     & MDAE    & 1.49                      & 3.09 & 4.30   & 5.13  & 6.09  & 21.53  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for LR + DFM with r=3, 1-144 Hours.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE     & 1.94                      & 4.05 & 5.46   & 6.32  & 7.60  & 21.76  \\ \cline{2-8} 
+                     & MAPE    & 3.58                      & 8.53 & 12.83  & 21.84 & 26.52 & 177.76 \\ \cline{2-8} 
+                     & MDAE    & 1.38                      & 3.40 & 4.77   & 5.76  & 6.86  & 22.13  \\ \hline
+\multirow{3}{*}{200} & MAE     & \multicolumn{1}{l|}{2.41} & 4.17 & 5.27   & 6.37  & 7.58  & 22.54  \\ \cline{2-8} 
+                     & MAPE    & 5.35                      & 8.82 & 12.33  & 23.41 & 26.36 & 183.11 \\ \cline{2-8} 
+                     & MDAE    & 1.80                      & 3.52 & 4.52   & 5.70  & 6.88  & 23.05  \\ \hline
+\multirow{3}{*}{300} & MAE     & 2.05                      & 3.80 & 4.97   & 5.79  & 6.90  & 21.28  \\ \cline{2-8} 
+                     & MAPE    & 3.87                      & 7.98 & 11.45  & 21.71 & 23.82 & 170.82 \\ \cline{2-8} 
+                     & MDAE    & 1.51                      & 3.13 & 4.33   & 5.18  & 6.07  & 21.33  \\ \hline
+\multirow{3}{*}{400} & MAE     & 1.99                      & 3.80 & 5.04   & 5.77  & 6.91  & 20.55  \\ \cline{2-8} 
+                     & MAPE    & 4.16                      & 7.92 & 11.47  & 21.72 & 23.98 & 167.36 \\ \cline{2-8} 
+                     & MDAE    & 1.34                      & 3.24 & 4.34   & 5.17  & 6.11  & 21.52  \\ \hline
+\multirow{3}{*}{500} & MAE     & 1.98                      & 3.63 & 4.92   & 5.72  & 6.65  & 20.59  \\ \cline{2-8} 
+                     & MAPE    & 4.50                      & 7.60 & 11.52  & 21.67 & 24.13 & 165.36 \\ \cline{2-8} 
+                     & MDAE    & 1.50                      & 3.10 & 4.31   & 5.12  & 6.06  & 21.55  \\ \hline
+\end{tabular}
+\end{table}
+
+In this particular exercise the best model was LR $+$ DFM with $r=3$ using the last $500$ days. Figures \ref{Good_144} and \ref{Bad_144} illustrate the performance of this model in a period  with low and high MAE, respectively. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/144_Good.eps}
+\caption{Real and predicted prices when a low MAE is obtained using LR+DFM with r=3 for the next 144 hours.}
+\label{Good_144}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/144_Bad.eps}
+\caption{Real and predicted prices when a high MAE is obtained using LR+DFM with r=3 for the next 144 hours.}
+\label{Bad_144}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/MAE_144.png}
+\caption{Daily MAE for 1-144 Hours from January 1st, 2016 to June 30th, 2017.}
+\end{figure}
+
+\subsection{Forecasting 30 days}
+For this particular case we are going to considered the price as a time series without regressor variables. We will use the period from January 1st, 2016 until June 30th, 2017 as test set. The models studied in this case were tested using the package \textit{forecast} without user intervention, TBATS and ARIMA models were tested in order to select the best.\\
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for $ARIMA(p,1,q)(P,1,Q)_7$, 1-30 Days.}
+\label{}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1    & Median & Mean  & Q3    & Max     \\ \hline
+\multirow{3}{*}{100} & MAE     & 1.45                      & 4.56  & 6.73   & 9.53  & 11.51 & 70.03   \\ \cline{2-8} 
+                     & MAPE    & 3.66                      & 9.39  & 18.21  & 28.13 & 37.67 & 234.08  \\ \cline{2-8} 
+                     & MDAE    & 0.87                      & 3.71  & 6.13   & 8.99  & 10.78 & 61.02   \\ \hline
+\multirow{3}{*}{200} & MAE     & \multicolumn{1}{l|}{1.72} & 4.58  & 6.81   & 9.76  & 11.77 & 109.05  \\ \cline{2-8} 
+                     & MAPE    & 4.25                      & 10.33 & 19.02  & 28.21 & 34.42 & 508.52  \\ \cline{2-8} 
+                     & MDAE    & 1.34                      & 3.95  & 6.17   & 9.19  & 10.81 & 86.77   \\ \hline
+\multirow{3}{*}{300} & MAE     & 2.25                      & 4.56  & 6.00   & 9.37  & 10.86 & 152.05  \\ \cline{2-8} 
+                     & MAPE    & 4.36                      & 9.67  & 16.27  & 27.32 & 29.79 & 703.59  \\ \cline{2-8} 
+                     & MDAE    & 1.55                      & 3.80  & 5.58   & 8.85  & 9.66  & 119.58  \\ \hline
+\multirow{3}{*}{400} & MAE     & 2.32                      & 4.24  & 5.52   & 8.17  & 8.93  & 177.72  \\ \cline{2-8} 
+                     & MAPE    & 4.59                      & 8.65  & 14.06  & 24.12 & 29.87 & 822.49  \\ \cline{2-8} 
+                     & MDAE    & 1.67                      & 3.49  & 5.00   & 7.61  & 8.11  & 138.69  \\ \hline
+\multirow{3}{*}{500} & MAE     & 2.37                      & 4.40  & 5.67   & 9.55  & 9.56  & 216.26  \\ \cline{2-8} 
+                     & MAPE    & 5.15                      & 9.17  & 14.10  & 29.19 & 30.35 & 1004.57 \\ \cline{2-8} 
+                     & MDAE    & 1.84                      & 3.57  & 5.20   & 8.81  & 8.61  & 165.78  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for $TBATS_7$, 1-30 Days.}
+\label{my-label}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1   & Median & Mean  & Q3    & Max    \\ \hline
+\multirow{3}{*}{100} & MAE     & 2.09                      & 4.10 & 5.44   & 7.16  & 9.28  & 47.96  \\ \cline{2-8} 
+                     & MAPE    & 4.15                      & 8.38 & 14.72  & 21.24 & 27.45 & 105.19 \\ \cline{2-8} 
+                     & MDAE    & 1.43                      & 3.41 & 5.11   & 6.67  & 8.65  & 51.29  \\ \hline
+\multirow{3}{*}{200} & MAE     & \multicolumn{1}{l|}{2.02} & 3.94 & 5.32   & 6.86  & 8.45  & 31.23  \\ \cline{2-8} 
+                     & MAPE    & 4.62                      & 8.53 & 13.91  & 20.67 & 26.66 & 121.92 \\ \cline{2-8} 
+                     & MDAE    & 1.35                      & 3.35 & 5.00   & 6.39  & 7.65  & 35.83  \\ \hline
+\multirow{3}{*}{300} & MAE     & 2.45                      & 4.07 & 5.36   & 6.88  & 8.68  & 30.21  \\ \cline{2-8} 
+                     & MAPE    & 4.47                      & 8.59 & 13.76  & 20.72 & 26.93 & 124.27 \\ \cline{2-8} 
+                     & MDAE    & 1.74                      & 3.40 & 4.97   & 6.41  & 8.13  & 34.50  \\ \hline
+\multirow{3}{*}{400} & MAE     & 2.30                      & 3.88 & 5.28   & 6.80  & 8.72  & 25.70  \\ \cline{2-8} 
+                     & MAPE    & 4.50                      & 8.29 & 13.96  & 21.16 & 26.80 & 132.87 \\ \cline{2-8} 
+                     & MDAE    & 1.37                      & 3.31 & 4.87   & 6.29  & 8.05  & 27.47  \\ \hline
+\multirow{3}{*}{500} & MAE     & 2.18                      & 4.14 & 5.39   & 6.75  & 8.41  & 25.33  \\ \cline{2-8} 
+                     & MAPE    & 4.34                      & 8.57 & 13.82  & 20.79 & 26.44 & 109.32 \\ \cline{2-8} 
+                     & MDAE    & 1.23                      & 3.47 & 4.87   & 6.20  & 7.85  & 27.65  \\ \hline
+\end{tabular}
+\end{table}
+
+Although we only consider one seasonality value to the TBATS model, we believe that this approach is very interesting, in fact we didn't find any kind of information about EPF using TBATS models and it is a model that outperforms traditional approach. The best model is $TBATS_7$ using the 500 days as training window size. Figures \ref{Good_30} and \ref{Bad_30} illustrate the performance of this model in a period  with low and high MAE, respectively. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/Good_1_30.eps}
+\caption{Real and predicted prices when a low MAE is obtained using $TBATS_7$ for the next 30 days.}
+\label{Good_30}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/Bad_1_30.eps}
+\caption{Real and predicted prices when a high MAE is obtained using $TBATS_7$ for the next 30 days.}
+\label{Bad_30}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/MAE_30.png}
+\caption{Daily MAE for 1-30 Days from January 1st, 2016 to June 30th, 2017.}
+\end{figure}
+
+\subsection{Forecasting 12 months}
+In order to forecast the following 12 months by months was selected as test period the dates from January, 2010 to June, 2017. We used different training windows sizes (Table \ref{12.1} and \ref{12.2}).\\
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for $ARIMA(p,1,q)(P,1,Q)_{12}$, 1-12 Months.}
+\label{12.1}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1    & Median & Mean  & Q3    & Max   \\ \hline
+\multirow{3}{*}{60}  & MAE     & 2.47                      & 7.49  & 10.18  & 10.75 & 13.21 & 30.00 \\ \cline{2-8} 
+                     & MAPE    & 4.79                      & 18.01 & 26.14  & 27.15 & 35.30 & 65.30 \\ \cline{2-8} 
+                     & MDAE    & 1.88                      & 5.39  & 9.88   & 10.14 & 13.67 & 31.63 \\ \hline
+\multirow{3}{*}{80}  & MAE     & \multicolumn{1}{l|}{2.75} & 6.31  & 8.75   & 9.86  & 12.27 & 29.64 \\ \cline{2-8} 
+                     & MAPE    & 5.38                      & 15.45 & 23.44  & 24.96 & 30.82 & 68.36 \\ \cline{2-8} 
+                     & MDAE    & 2.24                      & 5.12  & 7.49   & 9.22  & 12.97 & 30.86 \\ \hline
+\multirow{3}{*}{100} & MAE     & 2.93                      & 6.39  & 8.87   & 9.69  & 12.12 & 29.57 \\ \cline{2-8} 
+                     & MAPE    & 5.91                      & 14.62 & 23.08  & 24.89 & 32.69 & 67.21 \\ \cline{2-8} 
+                     & MDAE    & 1.71                      & 4.64  & 7.56   & 8.91  & 11.41 & 30.72 \\ \hline
+\multirow{3}{*}{120} & MAE     & 2.68                      & 5.42  & 8.65   & 9.29  & 11.74 & 29.47 \\ \cline{2-8} 
+                     & MAPE    & 5.23                      & 11.97 & 22.25  & 23.81 & 31.50 & 69.02 \\ \cline{2-8} 
+                     & MDAE    & 2.41                      & 4.11  & 6.40   & 8.53  & 11.84 & 30.54 \\ \hline
+\multirow{3}{*}{140} & MAE     & 2.30                      & 5.55  & 8.42   & 9.30  & 11.36 & 29.49 \\ \cline{2-8} 
+                     & MAPE    & 4.51                      & 13.37 & 21.95  & 24.12 & 32.51 & 69.10 \\ \cline{2-8} 
+                     & MDAE    & 1.81                      & 4.52  & 7.15   & 8.61  & 11.54 & 30.72 \\ \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+\centering
+\caption{Accuracies for $ARIMA(p,1,q)(P,1,Q)_{12}(Auto\_BoxCox)$, 1-12 Months.}
+\label{12.2}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+Days                 & Measure & Min                       & Q1    & Median & Mean  & Q3    & Max   \\ \hline
+\multirow{3}{*}{60}  & MAE     & 3.73                      & 7.18  & 10.06  & 11.21 & 14.12 & 31.35 \\ \cline{2-8} 
+                     & MAPE    & 7.25                      & 19.15 & 26.40  & 28.28 & 35.20 & 70.26 \\ \cline{2-8} 
+                     & MDAE    & 3.51                      & 5.35  & 9.23   & 10.62 & 14.78 & 32.28 \\ \hline
+\multirow{3}{*}{80}  & MAE     & \multicolumn{1}{l|}{2.97} & 6.04  & 9.35   & 9.94  & 12.29 & 30.62 \\ \cline{2-8} 
+                     & MAPE    & 5.73                      & 14.08 & 25.66  & 25.54 & 34.44 & 69.24 \\ \cline{2-8} 
+                     & MDAE    & 2.14                      & 4.99  & 7.24   & 9.32  & 12.68 & 31.25 \\ \hline
+\multirow{3}{*}{100} & MAE     & 2.38                      & 5.61  & 8.54   & 9.22  & 11.33 & 31.46 \\ \cline{2-8} 
+                     & MAPE    & 4.64                      & 13.05 & 22.75  & 23.96 & 32.44 & 70.25 \\ \cline{2-8} 
+                     & MDAE    & 2.11                      & 4.30  & 6.47   & 8.40  & 11.11 & 32.71 \\ \hline
+\multirow{3}{*}{120} & MAE     & 2.69                      & 5.38  & 8.12   & 9.05  & 10.92 & 30.26 \\ \cline{2-8} 
+                     & MAPE    & 5.24                      & 11.68 & 21.85  & 23.50 & 32.66 & 69.71 \\ \cline{2-8} 
+                     & MDAE    & 2.07                      & 3.98  & 6.74   & 8.25  & 10.44 & 31.98 \\ \hline
+\multirow{3}{*}{140} & MAE     & 2.53                      & 5.36  & 8.23   & 9.22  & 10.90 & 30.00 \\ \cline{2-8} 
+                     & MAPE    & 4.85                      & 12.10 & 20.41  & 24.05 & 33.69 & 70.06 \\ \cline{2-8} 
+                     & MDAE    & 1.76                      & 3.86  & 7.08   & 8.41  & 11.02 & 31.68 \\ \hline
+\end{tabular}
+\end{table}
+
+The best model is $ARIMA$ with a BoxCox transformation using Guerrero's method \cite{guerrero}. This model used the last 140 months as training windows size. Using this model we can observe two cases one with good accuracy (Figure: \ref{Good_12}) and another with bad accuracy (Figure: \ref{Bad_12}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/Good_12.eps}
+\caption{Real and predicted prices when a low MAE is obtained using $ARIMA$ for the next 12 months.}
+\label{Good_12}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/Bad_12.eps}
+\caption{Real and predicted prices when a high MAE is obtained using $ARIMA$ for the next 12 months.}
+\label{Bad_12}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{imagenes/MAE_12.png}
+\caption{Monthly MAE for 1-12 Months from January, 2010 to June, 2017.}
+\end{figure}
+
+\newpage
+\section{Automatization and Visualization}\label{APP}
+In order to implement a public access to the developed forecasting procedures, we will need a server that allows frequent running of our R'scripts. We will use a server in the cloud provided by Amazon Web Services (AWS). \\
+
+Thanks to funding from Universidad Carlos III de Madrid we were able to create an account at AWS and to select an instance with RStudio + Julia server (experimental) for statistical computation, that can be accessed by public DNS in a web browser (standard port 80). Using this instance, we created a web page in order to visualize and download the forecasted prices with their prediction intervals. This web page was done using \textit{shiny}. The instance used in particular is free for 12 months.\\
+
+We can access to the web page using the link \textit{\url{http://35.157.17.182/shiny/rstudio/sample-apps/Forecast/}}. If there is any problem you can send an e-mail to the following address alfranco@est-econ.uc3m.es with the following subject \textit{Can't access to Forecast/AWS}, because the IP address can change if the instance that was created has a crash. Using the package \textit{cronR} we run our scripts automatically without user intervention, this package was developed for Ubuntu but for Windows there exists a version called \textit{schedule}.\\
+
+In the app we can observe and download in a $csv$ file the electricity price forecast and the prediction interval for the following  24 hours, 144 hours, 30 days and 12 months. The app is very easy and intuitive of use as can be observed in Figure \ref{fig:App}, where in the drop-down list denoted by $1$ it can be selected the period of interest; in the button denoted by $2$ we can download the forecast values and in menu option denoted by $3$ the contact information of the App's developers is available. Also, Figure \ref{fig:App} illustrates the forecast and the prediction intervals for date January 31th, 2017.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.6]{imagenes/App.png} \
+\caption{Capture of the app developed.}
+\label{fig:App}
+\end{figure}
+
+\newpage
+\section{Conclusions and future research lines}
+The conclusions from this thesis are the following:
+
+\begin{itemize}
+\item After running all the models for predicting from one to 144 hours ahead and compared them using different kind of accuracies measure; we conclude that adding explicative variables will improve the accuracy of the models. At the end, the price depends on a lot of variables, the limitation of using this idea is that when we add variables as regressors we should know the forecast values of them in order to forecast the electricity price.
+\item For forecasting from one to 24 hours ahead, the SVM with linear kernel using the last 7 days is the best model. The hyper parameter tuning was done by a grid-search and for estimating the performance of the model cross-validation (with $K=10$) was used.
+\item It is very important to remark that using few days was better than using longer training sets. Something that goes against what is believed of machine learning that the more data you have is better.
+\item For forecasting from one to 144 hours ahead, the combination of DFM and linear regression was a little better than only using DFM.
+\item For forecasting from one to 30 days ahead, the TBATS model show better results than using a seasonal ARIMA model, even when was considered only one seasonality in TBATS.
+\item For forecasting up to 12 months, an ARIMA with Box-Cox transformation obtain the better results.
+\end{itemize}
+
+Some future lines of research that we plan to pursue are the following:
+
+\begin{itemize}
+\item For forecasting up to 24 hours we can add more explanatory variables like hydraulic variables (amount of rain and capability of the reservoirs). We guess that adding this kind of variables will improve the accuracy of the models.
+\item Try to apply more models in order to forecast up to 30 days and up to 12 months and compare the results.
+\item It could be interesting to do cluster (unsupervised learning) in order to group similar periods and, after that, to train and test different models for each cluster.
+\end{itemize}
+
+\newpage
+\section{Acknowledgments}
+I want to thank my advisors Francisco Javier Nogales Mart\'in and Carlos Ruiz Mora for his invaluable guidance and support in the making of this project. Also to Andr\'es M. Alonso for his helpful suggestions to earlier versions of the thesis. Finally, I would like to thank my family and friends for their continuous support.
+
+\newpage
+\section{Appendix: Thesis Work Schedule}
+In the next table will show the time invested in order to complete this thesis. 
+
+\begin{table}[H]
+\centering
+\caption{Thesis Work Schedule}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Task                                   & Duration & Start     & End        \\ \hline
+Obtaining the token                    & 4 days   & 14-4-2017 & 17-4-2017  \\ \hline
+Understanding how does it work the API & 8 days   & 20-4-2017 & 27-4-2017  \\ \hline
+Studying interest articles             & 61 days  & 1-5-2017  & 30-6-2017  \\ \hline
+Creating the instance                  & 10 days  & 1-9-2017  & 10-9-2017  \\ \hline
+Creating the Shiny App                 & 11 days  & 11-9-2017 & 21-9-2017  \\ \hline
+Writing and revision of the thesis     & 57 days  & 22-9-2017 & 17-11-2017 \\ \hline
+Testing the models                     & 123 days & 1-7-2017  & 31-10-2017 \\ \hline
+\end{tabular}
+\end{table}
+
+
+
+\newpage
+\bibliography{reference}{}
+\bibliographystyle{acm}
+
+\end{document}

@@ -1,0 +1,23 @@
+\babel@toc {spanish}{}
+\contentsline {chapter}{\numberline {1}Introducci\IeC {\'o}n}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}Motivaci\IeC {\'o}n del trabajo}{1}{section.1.1}
+\contentsline {section}{\numberline {1.2}Objetivos}{2}{section.1.2}
+\contentsline {section}{\numberline {1.3}Estructura del trabajo}{3}{section.1.3}
+\contentsline {chapter}{\numberline {2}Metodolog\IeC {\'\i }a: Antecedentes y propuesta}{4}{chapter.2}
+\contentsline {section}{\numberline {2.1}Definiciones b\IeC {\'a}sicas}{4}{section.2.1}
+\contentsline {section}{\numberline {2.2}El problema de la m\IeC {\'e}trica m\IeC {\'a}s cercana}{6}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}M\IeC {\'e}todo propuesto}{11}{subsection.2.2.1}
+\contentsline {section}{\numberline {2.3}Cl\IeC {\'u}ster o agrupamiento}{12}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Agrupamiento jer\IeC {\'a}rquico}{13}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}K-medias}{14}{subsection.2.3.2}
+\contentsline {subsection}{\numberline {2.3.3}K-medoides}{15}{subsection.2.3.3}
+\contentsline {section}{\numberline {2.4}Aditivo y ultram\IeC {\'e}trico}{17}{section.2.4}
+\contentsline {section}{\numberline {2.5}Estudio de simulaci\IeC {\'o}n}{19}{section.2.5}
+\contentsline {chapter}{\numberline {3}Ejemplos con conjuntos de datos reales}{24}{chapter.3}
+\contentsline {section}{\numberline {3.1}MNIST}{24}{section.3.1}
+\contentsline {section}{\numberline {3.2}DIAMONDS}{27}{section.3.2}
+\contentsline {chapter}{\numberline {4}Conclusiones y extensiones}{31}{chapter.4}
+\contentsline {section}{\numberline {4.1}Conclusiones}{31}{section.4.1}
+\contentsline {section}{\numberline {4.2}L\IeC {\'\i }neas futuras de trabajo}{31}{section.4.2}
+\contentsline {chapter}{\numberline {5}Ap\IeC {\'e}ndice: Calendario del trabajo fin de m\IeC {\'a}ster}{35}{chapter.5}
+\contentsfinish 

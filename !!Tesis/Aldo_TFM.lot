@@ -1,0 +1,14 @@
+\babel@toc {spanish}{}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Criterios de agrupamiento jer\IeC {\'a}rquico.}}{13}{table.2.1}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Matriz de confusi\IeC {\'o}n del MNIST usando k-NN($k=3$).}}{27}{table.3.1}
+\contentsline {table}{\numberline {3.2}{\ignorespaces Matriz de confusi\IeC {\'o}n de los valores predichos usando imputaci\IeC {\'o}n mediante cl\IeC {\'u}steres y los valores reales.}}{27}{table.3.2}
+\contentsline {table}{\numberline {3.3}{\ignorespaces An\IeC {\'a}lisis descriptivo b\IeC {\'a}sico de las variables num\IeC {\'e}ricas de DIAMONDS.}}{28}{table.3.3}
+\contentsline {table}{\numberline {3.4}{\ignorespaces Resumen de la variable dependiente en los datos de entrenamiento y validaci\IeC {\'o}n del dataset DIAMONDS.}}{29}{table.3.4}
+\contentsline {table}{\numberline {3.5}{\ignorespaces Resumen de la variable dependiente en los datos de prueba del dataset DIAMONDS.}}{29}{table.3.5}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Calendario}}{35}{table.5.1}
+\contentsfinish 
